@@ -41,3 +41,45 @@ void io::saveEXR(	std::string path,
 	file.setFrameBuffer((Imf::Rgba*)image.data(), 1, w);
 	file.writePixels(h);
 }
+
+bool io::parseArgs(	int argc, char** argv, 
+					int& w, int& h, int& s, 
+					std::string& in, std::string& out) {
+
+	w = defaultScreenWidth;
+	h = defaultScreenHeight;
+	s = defaultPixelSamples;
+
+	auto optCount = 0;
+	for(auto i = 1; i < argc; ++i) {
+		
+		if(argv[i][1] == '-') {
+			if(argv[i][2] == 'w')
+				w = std::stoi(argv[i+1]);
+			if(argv[i][2] == 'h')
+				h = std::stoi(argv[i+1]);
+			if(argv[i][3] == 's')
+				s = std::stoi(argv[i+1]);
+
+			++i;
+		} else {
+			if(optCount == 0)
+				in = std::string(argv[i]);
+			else
+				out = std::string(argv[i]);
+			++optCount;
+		}
+	}
+
+	if(in.size() == 0) {
+		std::cerr << "No input specified" << std::endl;
+		return false;
+	}
+
+	if(out.size() == 0) {
+		std::cerr << "No output specified" << std::endl;
+		return false;
+	}
+
+	return true;
+}
