@@ -1,11 +1,9 @@
-#ifndef SCENE_H
-#define SCENE_H
+#ifndef SCENE_HPP
+#define SCENE_HPP
 
 #include "math.hpp"
 
 #include <vector>
-#include <fstream>
-#include <iostream>
 
 class Mesh {
 public:
@@ -39,8 +37,6 @@ public:
 			const std::vector<Mesh>& meshes,
 			const Camera& cam)
 			: vtxs(vtxs), tris(tris), meshes(meshes), cam(cam) {}
-
-	static Scene loadOBJ(std::istream&);
 };
 
 #endif

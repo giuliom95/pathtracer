@@ -1,16 +1,18 @@
-#ifndef MATH_H
-#define MATH_H
+#ifndef MATH_HPP
+#define MATH_HPP
 
 #include <array>
 #include <cmath>
 #include <limits>
 
+#include <half.h>
 
 
 //////// VECTOR ////////
 
 using Vec3i = std::array<int, 3>;
 using Vec3f = std::array<float, 3>; 
+using Vec4h = std::array<half, 4>;
 
 inline const float dot			(const Vec3f& a, const Vec3f& b) { return a[0]*b[0] + a[1]*b[1] + a[2]*b[2]; }
 inline const Vec3f cross		(const Vec3f& a, const Vec3f& b) { return {a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]}; }
@@ -39,7 +41,7 @@ public:
 					x[2], y[2], z[2], w[2],
 						0,    0,    0,    1} {}
 
-	//float& operator()(int i, int j) { return data[i*4+j]; }
+	float& operator()(int i, int j) { return data[i*4+j]; }
 };
 
 
