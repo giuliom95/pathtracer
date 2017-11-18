@@ -10,6 +10,7 @@
 
 //////// VECTOR ////////
 
+using Vec2f = std::array<float, 2>;
 using Vec3i = std::array<int, 3>;
 using Vec3f = std::array<float, 3>; 
 using Vec4h = std::array<half, 4>;
