@@ -52,15 +52,13 @@ bool io::parseArgs(	int argc, char** argv,
 
 	auto optCount = 0;
 	for(auto i = 1; i < argc; ++i) {
-		
-		if(argv[i][1] == '-') {
-			if(argv[i][2] == 'w')
+		if(argv[i][0] == '-') {
+			if(argv[i][1] == 'w')
 				w = std::stoi(argv[i+1]);
-			if(argv[i][2] == 'h')
+			if(argv[i][1] == 'h')
 				h = std::stoi(argv[i+1]);
-			if(argv[i][3] == 's')
+			if(argv[i][1] == 's')
 				s = std::stoi(argv[i+1]);
-
 			++i;
 		} else {
 			if(optCount == 0)
