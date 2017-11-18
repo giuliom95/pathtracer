@@ -5,7 +5,9 @@
 #include <queue>
 #include <cmath>
 
-Vec4h eval_sample(const Vec2f& sample, const Scene& scene) {
+Vec4h eval_sample(const Ray& ray, const Scene& scene) {
+
+
 	return {0,0,0,1};
 }
 
@@ -42,9 +44,13 @@ int main(int argc, char** argv) {
 		auto sample = samples.front();
 		samples.pop();
 
+
+		Vec2f uv{sample[0] / w, sample[1] / h};
+		auto r = scene.cam.generateRay(uv);
+
 		auto i = std::floor(sample[0]);
 		auto j = std::floor(sample[1]);
-		image[h*i + j] = eval_sample(sample, scene);
+		image[h*i + j] = eval_sample(r, scene);
 	}
 
 	io::saveEXR(out, w, h, image);

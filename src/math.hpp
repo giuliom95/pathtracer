@@ -42,9 +42,12 @@ public:
 					x[2], y[2], z[2], w[2],
 						0,    0,    0,    1} {}
 
-	float& operator()(int i, int j) { return data[i*4+j]; }
+			float& operator()(int i, int j)			{ return data[i*4+j]; }
+	const 	float& operator()(int i, int j) const	{ return data[i*4+j]; }
 };
 
+inline const Vec3f transformPoint	(const Mat4& m, const Vec3f& p) { return {m(0,0)*p[0] + m(0,1)*p[1] + m(0,2)*p[2] + m(0,3), m(1,0)*p[0] + m(1,1)*p[1] + m(1,2)*p[2] + m(1,3), m(2,0)*p[0] + m(2,1)*p[1] + m(2,2)*p[2] + m(2,3)}; }
+inline const Vec3f transformVector	(const Mat4& m, const Vec3f& v) { return {m(0,0)*v[0] + m(0,1)*v[1] + m(0,2)*v[2], m(1,0)*v[0] + m(1,1)*v[1] + m(1,2)*v[2], m(2,0)*v[0] + m(2,1)*v[1] + m(2,2)*v[2]}; }
 
 //////// RAY ////////
 

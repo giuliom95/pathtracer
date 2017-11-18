@@ -14,3 +14,12 @@ Camera::Camera(	const Vec3f& pos,
 
 	c2w = {vx, vy, vz, pos};
 }
+
+const Ray Camera::generateRay(const Vec2f& uv) const {
+
+	auto h = 2 * std::tan(yfov / 2);
+    auto w = h * aspect;
+    Vec3f q{w * focus * (uv[0] - 0.5f), h * focus * (uv[1] - 0.5f), -focus};
+
+	return {transformPoint(c2w, {0,0,0}), transformVector(c2w, normalize(q))};
+}

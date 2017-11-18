@@ -22,6 +22,8 @@ public:
 			const float yfov = 2,
 			const float aspect = 16.0f / 9.0f,
 			const float focus = 1);
+
+	const Ray generateRay(const Vec2f&) const;
 };
 
 class Scene {
