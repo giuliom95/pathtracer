@@ -28,7 +28,7 @@ Scene io::loadOBJ(std::string path) {
 	Mesh m{0, (int)tris.size()};
 	meshes.push_back(m);
 
-	Camera cam{{0, 0, 3}, {0, 0, -1}, {0,1,0}};
+	Camera cam{{0, 0, 2}, {0, 0, -1}, {0,1,0}};
 
 	return {vtxs, tris, meshes, cam};
 }
