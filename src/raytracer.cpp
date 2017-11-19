@@ -7,8 +7,20 @@
 
 Vec4h eval_sample(const Ray& ray, const Scene& scene) {
 
+	for(auto m : scene.meshes) {
+		for(auto t = 0; t < m.ntris; ++t) {
+			auto tri = scene.tris[m.vtx0 + t];
+			auto v0 = scene.vtxs[tri[0]];
+			auto v1 = scene.vtxs[tri[1]];
+			auto v2 = scene.vtxs[tri[2]];
 
-	return {0,0,0,1};
+			auto ints = intersectTriangle(ray, v0, v1, v2);
+			if(ints[0] >= 0){
+				return {1,0,0,1};
+			} 
+		}
+	}
+	return {0,0,0,0};
 }
 
 
@@ -23,7 +35,7 @@ int main(int argc, char** argv) {
 	for(auto m : scene.meshes)
 		printf("Mesh -> start: %i, ntris: %i\n", m.vtx0, m.ntris);
 
-	std::vector<Vec4h> image{(size_t)w*h, {1, .5, .5, 1}};
+	std::vector<Vec4h> image{(size_t)w*h, {0, 0, 0, 0}};
 
 	// Fills the queue with evenly distributed samples
 	std::queue<Vec2f> samples;
@@ -50,9 +62,8 @@ int main(int argc, char** argv) {
 
 		auto i = std::floor(sample[0]);
 		auto j = std::floor(sample[1]);
-		image[h*i + j] = eval_sample(r, scene);
+		image[i + j*w] = image[i + j*w] + eval_sample(r, scene);
 	}
-
 	io::saveEXR(out, w, h, image);
 	return 0;
 }

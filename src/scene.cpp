@@ -12,7 +12,7 @@ Camera::Camera(	const Vec3f& pos,
 	const auto vy = normalize(up);
 	const auto vx = cross(vy, vz);
 
-	c2w = {vx, vy, vz, pos};
+	c2w = {vx, vy, -1*vz, pos};
 }
 
 const Ray Camera::generateRay(const Vec2f& uv) const {

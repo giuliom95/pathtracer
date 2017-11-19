@@ -19,6 +19,7 @@ Scene io::loadOBJ(std::string path) {
 		} else if(head == "f") {
 			Vec3i f;
 			input >> f[0] >> f[1] >> f[2];
+			--f[0]; --f[1]; --f[2];
 			tris.push_back(f);
 		}
 	}
@@ -27,7 +28,7 @@ Scene io::loadOBJ(std::string path) {
 	Mesh m{0, (int)tris.size()};
 	meshes.push_back(m);
 
-	Camera cam{{0, -0.2, 7.5}, {0, 0, -1}, {0,1,0}};
+	Camera cam{{0, 0, 3}, {0, 0, -1}, {0,1,0}};
 
 	return {vtxs, tris, meshes, cam};
 }
