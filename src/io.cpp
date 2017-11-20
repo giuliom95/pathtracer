@@ -1,13 +1,17 @@
 #include "io.hpp"
 
 #include <fstream>
+#include <string>
 #include <iostream>
 
 Scene io::loadOBJ(std::string path) {
 	std::ifstream input{path};
 
 	std::vector<Vec3f> vtxs;
-	std::vector<Vec3i> tris;
+	std::vector<Vec3f> norms;
+
+	std::vector<Vec3i> vtris;
+	std::vector<Vec3i> ntris;
 
 	while(!input.eof()) {
 		std::string head;
@@ -16,21 +20,34 @@ Scene io::loadOBJ(std::string path) {
 			Vec3f v;
 			input >> v[0] >> v[1] >> v[2];
 			vtxs.push_back(v);
+		} else if(head == "vn") {
+			Vec3f n;
+			input >> n[0] >> n[1] >> n[2];
+			n = normalize(n);
+			norms.push_back(n);
 		} else if(head == "f") {
-			Vec3i f;
-			input >> f[0] >> f[1] >> f[2];
-			--f[0]; --f[1]; --f[2];
-			tris.push_back(f);
+			// Remember that OBJ start counting from one
+			Vec3i vtri;
+			Vec3i ntri;
+			for(auto i = 0; i < 3; ++i) {
+				std::string elem;
+				input >> elem;
+				const auto sep = elem.find('/');
+				vtri[i] = std::stoi(elem.substr(0, sep)) - 1;
+				ntri[i] = std::stoi(elem.substr(sep+2, elem.length()-(sep+2))) - 1;
+			}
+			vtris.push_back(vtri);
+			ntris.push_back(ntri);
 		}
 	}
 
-	std::vector<Mesh> meshes;
-	Mesh m{0, (int)tris.size()};
-	meshes.push_back(m);
+	// Let's assume that OBJ contains only one mesh
+	std::vector<Mesh> meshes{1, {0, 0, (int)vtris.size()}};
+	
+	// Dummy fixed camera
+	Camera cam{{0, 2, 4}, {0, 0, -1}, {0,1,0}};
 
-	Camera cam{{0, 0, 2}, {0, 0, -1}, {0,1,0}};
-
-	return {vtxs, tris, meshes, cam};
+	return {vtxs, norms, vtris, ntris, meshes, cam};
 }
 
 
