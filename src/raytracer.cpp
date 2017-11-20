@@ -7,9 +7,7 @@
 
 #include <thread>
 
-void eval_ray(const Ray ray, const Scene& scene, Vec4h& pixel) {
-
-	Vec4h out{0,0,0,0};
+Vec4h eval_ray(const Ray ray, const Scene& scene) {
 
 	for(auto m : scene.meshes) {
 		for(auto t = 0; t < m.ntris; ++t) {
@@ -20,11 +18,11 @@ void eval_ray(const Ray ray, const Scene& scene, Vec4h& pixel) {
 
 			auto ints = intersectTriangle(ray, v0, v1, v2);
 			if(ints[0] >= 0){
-				out = {1,0,0,1};
+				return {1,0,0,1};
 			} 
 		}
 	}
-	pixel = pixel + out;
+	return {0,0,0,0};
 }
 
 int main(int argc, char** argv) {
@@ -49,10 +47,9 @@ int main(int argc, char** argv) {
 							auto u = (i + (si + 0.5f) / s) / w;
 							auto v = ((h - j) + (sj + 0.5f) / s) / h;
 							auto r = scene.cam.generateRay({u,v});
-							eval_ray(r, scene, img[i+j*w]);
+							img[i+j*w] += eval_ray(r, scene);
 						}
 					}
-					//img[{i, j}] /= (float)(samples * samples);
 				}
 			}
 		}));

@@ -22,7 +22,7 @@ inline const Vec3f operator*	(const float f,  const Vec3f& v) { return {f*v[0], 
 inline const float length		(const Vec3f& v) { return std::sqrt(dot(v, v)); }
 inline const Vec3f normalize	(const Vec3f& v) { return (1 / length(v))*v; }
 
-inline const Vec4h operator+	(const Vec4h& a, const Vec4h& b) { return {a[0]+b[0], a[1]+b[1], a[2]+b[2], a[3]+b[3]}; }
+inline const void operator+=	(Vec4h& a, const Vec4h& b) { a[0]+=b[0]; a[1]+=b[1]; a[2]+=b[2]; a[3]+=b[3]; }
 
 //////// MATRIX ////////
 
