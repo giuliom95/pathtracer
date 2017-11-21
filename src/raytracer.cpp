@@ -9,20 +9,48 @@
 
 Vec4h eval_ray(const Ray ray, const Scene& scene) {
 
-	for(auto m : scene.meshes) {
-		for(auto t = 0; t < m.ntris; ++t) {
-			auto vtri = scene.vtris[m.vtx0 + t];
-			auto v0 = scene.vtxs[vtri[0]];
-			auto v1 = scene.vtxs[vtri[1]];
-			auto v2 = scene.vtxs[vtri[2]];
+	auto t = ray.tmax;
+	int triangle;
+	float a0, a1;
+	Vec3f normal;
+	const Mesh* mesh;
 
-			auto ints = intersectTriangle(ray, v0, v1, v2);
-			if(ints[0] >= 0){
-				return {1,0,0,1};
-			} 
+	for(auto& m : scene.meshes) {
+		for(auto ti = 0; ti < m.ntris; ++ti) {
+			const auto vtri = scene.vtris[m.vtx0 + ti];
+			const auto v0 = scene.vtxs[vtri[0]];
+			const auto v1 = scene.vtxs[vtri[1]];
+			const auto v2 = scene.vtxs[vtri[2]];
+
+			const auto ints = intersectTriangle(ray, v0, v1, v2);
+
+			if(	ints[0] >= ray.tmin && 
+				ints[0] <= ray.tmax && 
+				ints[0] < t) {
+				
+				triangle = ti;
+				t = ints[0];
+				a0 = ints[1];
+				a1 = ints[2];
+				mesh = &m;
+				if(verbose)
+					std::cout << t << " ";
+			}
 		}
 	}
-	return {0,0,0,0};
+
+	if(t < ray.tmax) {
+		if(verbose)
+			std::cout << std::endl;
+		const auto ntri = scene.ntris[mesh->norm0 + triangle];
+		const auto n0 = scene.norms[ntri[0]];
+		const auto n1 = scene.norms[ntri[1]];
+		const auto n2 = scene.norms[ntri[2]];
+
+		normal = (1-a0-a1)*n0 + a0*n1 + a1*n2;
+		return {normal[0],normal[1],normal[2],1};
+	} else
+		return {0,0,0,0};
 }
 
 void raytrace(const Scene& scn, int w, int h, int s, std::vector<Vec4h>& img) {
