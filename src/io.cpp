@@ -32,9 +32,12 @@ Scene io::loadOBJ(std::string path) {
 			for(auto i = 0; i < 3; ++i) {
 				std::string elem;
 				input >> elem;
-				const auto sep = elem.find('/');
-				vtri[i] = std::stoi(elem.substr(0, sep)) - 1;
-				ntri[i] = std::stoi(elem.substr(sep+2, elem.length()-(sep+2))) - 1;
+				const auto sep1 = elem.find('/');
+				vtri[i] = std::stoi(elem.substr(0, sep1)) - 1;
+
+				elem = elem.substr(sep1+1, elem.length()-(sep1+1));
+				const auto sep2 = elem.find('/');
+				ntri[i] = std::stoi(elem.substr(sep2+1, elem.length()-(sep2+1))) - 1;
 			}
 			vtris.push_back(vtri);
 			ntris.push_back(ntri);
@@ -45,7 +48,9 @@ Scene io::loadOBJ(std::string path) {
 	std::vector<Mesh> meshes{1, {0, 0, (int)vtris.size()}};
 	
 	// Dummy fixed camera
-	Camera cam{{0, 2, 4}, {0, 0, -1}, {0,1,0}};
+	//Camera cam{{0, 2, 4}, {0, -0.3, -1}, {0,1,0}, 1};
+
+	Camera cam{{0, 1, 4}, {0, -0.3, -1}, {0,1,0}, 1, 1};
 
 	return {vtxs, norms, vtris, ntris, meshes, cam};
 }
