@@ -10,7 +10,7 @@ Camera::Camera(	const Vec3f& pos,
 
 	const auto vz = normalize(look);
 	const auto vy = normalize(up);
-	const auto vx = cross(vy, vz);
+	const auto vx = cross(vz, vy);
 
 	c2w = {vx, vy, -1*vz, pos};
 }
