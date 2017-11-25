@@ -1,4 +1,3 @@
-
 #include "scene.hpp"
 #include "io.hpp"
 
@@ -33,15 +32,11 @@ Vec4h eval_ray(const Ray ray, const Scene& scene) {
 				a0 = ints[1];
 				a1 = ints[2];
 				mesh = &m;
-				if(verbose)
-					std::cout << t << " ";
 			}
 		}
 	}
 
 	if(t < ray.tmax) {
-		if(verbose)
-			std::cout << std::endl;
 		const auto ntri = scene.ntris[mesh->norm0 + triangle];
 		const auto n0 = scene.norms[ntri[0]];
 		const auto n1 = scene.norms[ntri[1]];
