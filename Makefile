@@ -3,8 +3,8 @@ CXX=g++
 CXXFLAGS=-W -Wall -std=c++11 -O3
 TARGET=bin/raytracer
 
-USD_ROOT=/home/giulio/dev/packages/USD/install
-PTEX_ROOT=/home/giulio/dev/packages/ptex/install
+USD_ROOT=$(HOME)/dev/packages/USD/install
+PTEX_ROOT=$(HOME)/dev/packages/ptex/install
 INCLUDES=-I/usr/include/OpenEXR -I$(USD_ROOT)/include -I$(PTEX_ROOT)/include
 
 LDFLAGS=-lIlmImf -lHalf -L$(PTEX_ROOT)/lib64 -lPtex
