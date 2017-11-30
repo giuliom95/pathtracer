@@ -15,6 +15,8 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 
 	std::vector<Mesh> meshes;
 
+	auto lastt0 = 0;
+
 	while(!input.eof()) {
 		std::string head;
 		input >> head;
@@ -45,20 +47,15 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 			ntris.push_back(ntri);
 		} else if(head == "g") {
 			// Save mesh data
-			if(meshes.size() == 0) {
-				meshes.push_back({0, (int)vtris.size()});
-			} else {
-				auto p0 = meshes[meshes.size()-1].ntris;
-				meshes.push_back({p0, (int)vtris.size()-p0});
+			if(!vtris.empty()) {
+				meshes.push_back({lastt0, (int)vtris.size()-lastt0});
+				lastt0 = (int)vtris.size();
 			}
-	    }
+		}
 	}
 
-	// Let's assume that OBJ contains only one mesh
-	if(meshes.size() == 0) {
-		meshes.push_back({0, (int)vtris.size()});
-	}
-	
+	meshes.push_back({lastt0, (int)vtris.size()-lastt0});
+
 	// Dummy fixed camera
 	Camera cam{{0, 2, 4}, {0, -0.3, -1}, {0,1,0}, 1, (float)(w)/h};
 

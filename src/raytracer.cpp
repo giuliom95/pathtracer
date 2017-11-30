@@ -16,7 +16,7 @@ Vec4h eval_ray(const Ray ray, const Scene& scene) {
 
 	for(auto& m : scene.meshes) {
 		for(auto ti = 0; ti < m.ntris; ++ti) {
-			const auto vtri = scene.vtris[m.p0 + ti];
+			const auto vtri = scene.vtris[m.t0 + ti];
 			const auto v0 = scene.vtxs[vtri[0]];
 			const auto v1 = scene.vtxs[vtri[1]];
 			const auto v2 = scene.vtxs[vtri[2]];
@@ -37,7 +37,7 @@ Vec4h eval_ray(const Ray ray, const Scene& scene) {
 	}
 
 	if(t < ray.tmax) {
-		const auto ntri = scene.ntris[mesh->p0 + triangle];
+		const auto ntri = scene.ntris[mesh->t0 + triangle];
 		const auto n0 = scene.norms[ntri[0]];
 		const auto n1 = scene.norms[ntri[1]];
 		const auto n2 = scene.norms[ntri[2]];

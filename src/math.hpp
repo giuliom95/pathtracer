@@ -64,16 +64,6 @@ public:
 };
 
 
-//////// BOUNDING BOXES ////////
-
-class BBox {
-public:
-	const Vec3f p0;
-	const Vec3f p1;
-
-	BBox(const Vec3f& p0, const Vec3f& p1) : p0(p0), p1(p1) {}
-};
-
 
 //////// INTERSECTIONS ////////
 
