@@ -7,13 +7,10 @@
 
 class Mesh {
 public:
-	const int vtx0;
-	const int norm0;
-
+	const int p0;
 	const int ntris;
 
-	Mesh(int vtx0, int norm0, int ntris) 
-		: vtx0(vtx0), norm0(norm0), ntris(ntris) {}
+	Mesh(int p0, int ntris) : p0(p0), ntris(ntris) {}
 };
 
 class Camera {

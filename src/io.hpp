@@ -16,7 +16,7 @@ namespace io {
 	static const int defaultScreenHeight = 1080;
 	static const int defaultPixelSamples = 1;
 
-	Scene loadOBJ(std::string path);
+	Scene loadOBJ(std::string path, int w, int h);
 
 	void saveEXR(   std::string path, 
 					const int w, const int h, 

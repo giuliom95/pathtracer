@@ -4,7 +4,7 @@
 #include <string>
 #include <iostream>
 
-Scene io::loadOBJ(std::string path) {
+Scene io::loadOBJ(std::string path, int w, int h) {
 	std::ifstream input{path};
 
 	std::vector<Vec3f> vtxs;
@@ -12,6 +12,8 @@ Scene io::loadOBJ(std::string path) {
 
 	std::vector<Vec3i> vtris;
 	std::vector<Vec3i> ntris;
+
+	std::vector<Mesh> meshes;
 
 	while(!input.eof()) {
 		std::string head;
@@ -41,20 +43,27 @@ Scene io::loadOBJ(std::string path) {
 			}
 			vtris.push_back(vtri);
 			ntris.push_back(ntri);
-		}
+		} else if(head == "g") {
+			// Save mesh data
+			if(meshes.size() == 0) {
+				meshes.push_back({0, (int)vtris.size()});
+			} else {
+				auto p0 = meshes[meshes.size()-1].ntris;
+				meshes.push_back({p0, (int)vtris.size()-p0});
+			}
+	    }
 	}
 
 	// Let's assume that OBJ contains only one mesh
-	std::vector<Mesh> meshes{1, {0, 0, (int)vtris.size()}};
+	if(meshes.size() == 0) {
+		meshes.push_back({0, (int)vtris.size()});
+	}
 	
 	// Dummy fixed camera
-	//Camera cam{{0, 2, 4}, {0, -0.3, -1}, {0,1,0}, 1};
-
-	Camera cam{{0, 1, 4}, {0, -0.3, -1}, {0,1,0}, 1, 1};
+	Camera cam{{0, 2, 4}, {0, -0.3, -1}, {0,1,0}, 1, (float)(w)/h};
 
 	return {vtxs, norms, vtris, ntris, meshes, cam};
 }
-
 
 void io::saveEXR(	std::string path, 
 					const int w, const int h, 

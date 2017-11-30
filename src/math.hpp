@@ -87,5 +87,4 @@ inline Vec3f intersectTriangle(const Ray& r, Vec3f v0, Vec3f v1, Vec3f v2) {
 	return {t, u, v};
 }
 
-
 #endif
