@@ -59,17 +59,27 @@ public:
 	Vec3f o, d;
 	float tmin, tmax;
 
-	Ray(Vec3f o, Vec3f d, float tmin=0.0, float tmax=std::numeric_limits<float>::max()) 
+	Ray(const Vec3f& o, const Vec3f& d, float tmin=0.0, float tmax=std::numeric_limits<float>::max())
 		: o(o), d(d), tmin(tmin), tmax(tmax) {}
 };
 
 
+//////// BOUNDING BOXES ////////
+
+class BBox {
+public:
+	const Vec3f p0;
+	const Vec3f p1;
+
+	BBox(const Vec3f& p0, const Vec3f& p1) : p0(p0), p1(p1) {}
+};
 
 
 //////// INTERSECTIONS ////////
 
 // Möller-Trumbore ray-triangle intersection
 // Returns t, u and v as a Vec3f
+// TODO: Maybe aligning in memory the argument will lead to speed-ups. Gotta check this out.
 inline Vec3f intersectTriangle(const Ray& r, Vec3f v0, Vec3f v1, Vec3f v2) {
 	const auto v01 = v1 - v0;
 	const auto v02 = v2 - v0;
