@@ -1,5 +1,6 @@
 #include "scene.hpp"
 #include "io.hpp"
+#include "bvh.hpp"
 
 #include <queue>
 #include <cmath>
@@ -79,6 +80,8 @@ int main(int argc, char** argv) {
 	if(!io::parseArgs(argc, argv, w, h, s, in, out)) return 1;
 
 	auto scene = io::loadOBJ(in, w, h);
+	BVHTree tree{scene};
+
 	std::vector<Vec4h> img{(size_t)w*h, {0, 0, 0, 0}};
 
 	raytrace(scene, w, h, s, img);

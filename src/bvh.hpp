@@ -19,10 +19,10 @@ public:
 
 class BVHNode {
 public:
-	BVHNode* right;
-	BVHNode* left;
-	BBox box;
-	Mesh* mesh;
+	const BVHNode* right;
+	const BVHNode* left;
+	const BBox box;
+	const Mesh* mesh;
 };
 
 class BVHTree {

@@ -8,6 +8,10 @@
 #include <half.h>
 
 
+inline const float max(const float a, const float b) {return a > b ? a : b;}
+inline const float min(const float a, const float b) {return a < b ? a : b;}
+
+
 //////// VECTOR ////////
 
 using Vec2f = std::array<float, 2>;
