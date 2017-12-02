@@ -19,8 +19,8 @@ public:
 
 class BVHNode {
 public:
-	const BVHNode* right;
 	const BVHNode* left;
+	const BVHNode* right;
 	const BBox box;
 	const Mesh* mesh;
 };

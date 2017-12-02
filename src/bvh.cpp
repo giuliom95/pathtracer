@@ -29,7 +29,7 @@ void BBox::enlarge(const Vec3f& p) {
 }
 
 
-void build_tree(
+BVHNode* build_tree(
 	std::vector<BVHNode>& nodes,
 	std::vector<int>& elems,
 	const std::vector<BBox>& boxes,
@@ -37,9 +37,9 @@ void build_tree(
 	const std::vector<Mesh>& meshes) {
 
 	if(elems.size() == 1) {
-		BVHNode node{NULL, NULL, boxes[elems[0]], &meshes[elems[0]]};
+		BVHNode node{nullptr, nullptr, boxes[elems[0]], &meshes[elems[0]]};
 		nodes.push_back(node);
-
+		return &nodes[nodes.size()-1];
 	} else {
 		// Compute the span of the centroids for each dimension
 		Vec3f minCentroid{centroids[elems[0]]};
@@ -81,12 +81,12 @@ void build_tree(
 		for(auto i = 0; i < (size - mid); ++i)
 			group_r[i] = elems[i + mid];
 
-		build_tree(nodes, group_l, boxes, centroids, meshes);
-		build_tree(nodes, group_r, boxes, centroids, meshes);
+		auto ptr_l = build_tree(nodes, group_l, boxes, centroids, meshes);
+		auto ptr_r = build_tree(nodes, group_r, boxes, centroids, meshes);
 
-		BVHNode node{NULL, NULL, boxes[elems[0]], &meshes[elems[0]]};
+		BVHNode node{ptr_l, ptr_r, {{},{}}, NULL};
 		nodes.push_back(node);
-
+		return &nodes[nodes.size()-1];
 	}
 }
 
@@ -106,9 +106,5 @@ BVHTree::BVHTree(const Scene& scn) : nodes() {
 	std::vector<int> elems((int)scn.meshes.size());
 	for(auto i = 0; i < elems.size(); ++i) elems[i] = i;
 
-	build_tree(nodes, elems, boxes, centroids, scn.meshes);
-
-	for(auto& n : nodes) {
-		std::cout << n.mesh << std::endl;
-	}
+	auto root = build_tree(nodes, elems, boxes, centroids, scn.meshes);
 }
