@@ -17,7 +17,6 @@ BBox::BBox(const Mesh& msh, const Scene& scn) : pMin(), pMax() {
 	}
 };
 
-
 void BBox::enlarge(const Vec3f& p) {
 	pMin[0] = min(pMin[0], p[0]);
 	pMin[1] = min(pMin[1], p[1]);
@@ -33,6 +32,7 @@ void BBox::enlarge(const BBox& box) {
 	enlarge(box.pMin);
 	enlarge(box.pMax);
 }
+
 
 BVHNode* build_tree(
 	std::vector<BVHNode>& nodes,

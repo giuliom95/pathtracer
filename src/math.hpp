@@ -23,6 +23,7 @@ inline const float dot			(const Vec3f& a, const Vec3f& b) { return a[0]*b[0] + a
 inline const Vec3f cross		(const Vec3f& a, const Vec3f& b) { return {a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]}; }
 inline const Vec3f operator-	(const Vec3f& a, const Vec3f& b) { return {a[0]-b[0], a[1]-b[1], a[2]-b[2]}; }
 inline const Vec3f operator+	(const Vec3f& a, const Vec3f& b) { return {a[0]+b[0], a[1]+b[1], a[2]+b[2]}; }
+inline const Vec3f operator*	(const Vec3f& a, const Vec3f& b) { return {a[0]*b[0], a[1]*b[1], a[2]*b[2]}; }
 inline const Vec3f operator*	(const float f,  const Vec3f& v) { return {f*v[0], f*v[1], f*v[2]}; }
 inline const float length		(const Vec3f& v) { return std::sqrt(dot(v, v)); }
 inline const Vec3f normalize	(const Vec3f& v) { return (1 / length(v))*v; }
@@ -60,11 +61,11 @@ inline const Vec3f transformVector	(const Mat4& m, const Vec3f& v) { return {m(0
 
 class Ray {
 public:
-	Vec3f o, d;
+	Vec3f o, d, invd;
 	float tmin, tmax;
 
 	Ray(const Vec3f& o, const Vec3f& d, float tmin=0.0, float tmax=std::numeric_limits<float>::max())
-		: o(o), d(d), tmin(tmin), tmax(tmax) {}
+		: o(o), d(d), invd{1/d[0], 1/d[1], 1/d[2]}, tmin(tmin), tmax(tmax) {}
 };
 
 
