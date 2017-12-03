@@ -15,6 +15,7 @@ public:
 	BBox(const Mesh&, const Scene&);
 
 	void enlarge(const Vec3f& p);
+	void enlarge(const BBox& box);
 };
 
 class BVHNode {

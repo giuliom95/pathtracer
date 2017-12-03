@@ -29,6 +29,11 @@ void BBox::enlarge(const Vec3f& p) {
 }
 
 
+void BBox::enlarge(const BBox& box) {
+	enlarge(box.pMin);
+	enlarge(box.pMax);
+}
+
 BVHNode* build_tree(
 	std::vector<BVHNode>& nodes,
 	std::vector<int>& elems,
@@ -72,32 +77,38 @@ BVHNode* build_tree(
 				return centroids[a][axis] < centroids[b][axis];
 			});
 
+		// Build the two groups
 		std::vector<int> group_l(mid);
 		std::vector<int> group_r(size - mid);
-
 		for(auto i = 0; i < mid; ++i)
 			group_l[i] = elems[i];
-
 		for(auto i = 0; i < (size - mid); ++i)
 			group_r[i] = elems[i + mid];
 
+		// Recursion
 		auto ptr_l = build_tree(nodes, group_l, boxes, centroids, meshes);
 		auto ptr_r = build_tree(nodes, group_r, boxes, centroids, meshes);
 
-		BVHNode node{ptr_l, ptr_r, {{},{}}, NULL};
+		// Build bounding box
+		BBox b = boxes[elems[0]];
+		for(auto i = 1; i < elems.size(); ++i)
+			b.enlarge(boxes[elems[i]]);
+
+		// Create node and return
+		BVHNode node{ptr_l, ptr_r, b, NULL};
 		nodes.push_back(node);
 		return &nodes[nodes.size()-1];
 	}
 }
 
 BVHTree::BVHTree(const Scene& scn) : nodes(), root(nullptr) {
-	std::cout << nodes.capacity() << std::endl;
+	// Enlarge the nodes vector to fit all the nodes
 	nodes.reserve(2*scn.meshes.size() - 1);
-	std::cout << nodes.capacity() << std::endl;
 
 	std::vector<BBox> boxes{};
 	std::vector<Vec3f> centroids{};
 
+	// Compute bboxes and centroids
 	for(auto& m : scn.meshes) {
 		const BBox b{m, scn};
 		boxes.push_back(b);
