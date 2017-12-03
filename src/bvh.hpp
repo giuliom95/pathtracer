@@ -28,6 +28,7 @@ public:
 class BVHTree {
 	std::vector<BVHNode> nodes;
 public:
+	BVHNode* root;
 	BVHTree(const Scene&);
 };
 

@@ -90,8 +90,11 @@ BVHNode* build_tree(
 	}
 }
 
+BVHTree::BVHTree(const Scene& scn) : nodes(), root(nullptr) {
+	std::cout << nodes.capacity() << std::endl;
+	nodes.reserve(2*scn.meshes.size() - 1);
+	std::cout << nodes.capacity() << std::endl;
 
-BVHTree::BVHTree(const Scene& scn) : nodes() {
 	std::vector<BBox> boxes{};
 	std::vector<Vec3f> centroids{};
 
@@ -106,5 +109,5 @@ BVHTree::BVHTree(const Scene& scn) : nodes() {
 	std::vector<int> elems((int)scn.meshes.size());
 	for(auto i = 0; i < elems.size(); ++i) elems[i] = i;
 
-	auto root = build_tree(nodes, elems, boxes, centroids, scn.meshes);
+	root = build_tree(nodes, elems, boxes, centroids, scn.meshes);
 }
