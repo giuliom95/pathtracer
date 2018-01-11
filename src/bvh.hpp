@@ -1,10 +1,10 @@
-#ifndef BVH_H
-#define BVH_H
+#ifndef BVH_HPP
+#define BVH_HPP
 
 #include <vector>
 
 #include "math.hpp"
-#include "scene.hpp"
+#include "mesh.hpp"
 
 class BBox {
 public:
@@ -12,12 +12,14 @@ public:
 	Vec3f pMax;
 
 	BBox(const Vec3f&, const Vec3f&);
-	BBox(const Mesh&, const Scene&);
+	BBox(	const Mesh&,
+			const std::vector<Vec3f>&,
+			const std::vector<Vec3i>&);
 
 	void enlarge(const Vec3f& p);
 	void enlarge(const BBox& box);
 
-	bool intersect(const Ray& r) {
+	inline const bool intersect (const Ray& r) const {
 		auto t0 = (pMin - r.o) * r.invd;
 		auto t1 = (pMax - r.o) * r.invd;
 		if (r.invd[0] < 0) std::swap(t0[0], t1[0]);
@@ -42,7 +44,9 @@ class BVHTree {
 	std::vector<BVHNode> nodes;
 public:
 	BVHNode* root;
-	BVHTree(const Scene&);
+	BVHTree(const std::vector<Mesh>& meshes,
+			const std::vector<Vec3f>& vtxs,
+			const std::vector<Vec3i>& vtris);
 };
 
 

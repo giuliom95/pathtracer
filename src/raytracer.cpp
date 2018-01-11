@@ -1,6 +1,5 @@
 #include "scene.hpp"
 #include "io.hpp"
-#include "bvh.hpp"
 
 #include <queue>
 #include <cmath>
@@ -9,44 +8,22 @@
 
 Vec4h eval_ray(const Ray ray, const Scene& scene) {
 
-	auto t = ray.tmax;
+	Mesh* mesh;
 	int triangle;
-	float a0, a1;
-	Vec3f normal;
-	const Mesh* mesh;
+	Vec3f tuv;
 
-	for(auto& m : scene.meshes) {
-		for(auto ti = 0; ti < m.ntris; ++ti) {
-			const auto vtri = scene.vtris[m.t0 + ti];
-			const auto v0 = scene.vtxs[vtri[0]];
-			const auto v1 = scene.vtxs[vtri[1]];
-			const auto v2 = scene.vtxs[vtri[2]];
-
-			const auto ints = intersectTriangle(ray, v0, v1, v2);
-
-			if(	ints[0] >= ray.tmin && 
-				ints[0] <= ray.tmax && 
-				ints[0] < t) {
-				
-				triangle = ti;
-				t = ints[0];
-				a0 = ints[1];
-				a1 = ints[2];
-				mesh = &m;
-			}
-		}
-	}
-
-	if(t < ray.tmax) {
+	if(scene.intersect(ray, mesh, triangle, tuv)) {
+		printf("INT\n");
 		const auto ntri = scene.ntris[mesh->t0 + triangle];
 		const auto n0 = scene.norms[ntri[0]];
 		const auto n1 = scene.norms[ntri[1]];
 		const auto n2 = scene.norms[ntri[2]];
 
-		normal = (1-a0-a1)*n0 + a0*n1 + a1*n2;
+		auto normal = (1-tuv[1]-tuv[2])*n0 + tuv[1]*n1 + tuv[2]*n2;
 		return {normal[0],normal[1],normal[2],1};
-	} else
+	} else {
 		return {0,0,0,0};
+	}
 }
 
 void raytrace(const Scene& scn, int w, int h, int s, std::vector<Vec4h>& img) {
@@ -80,11 +57,15 @@ int main(int argc, char** argv) {
 	if(!io::parseArgs(argc, argv, w, h, s, in, out)) return 1;
 
 	auto scene = io::loadOBJ(in, w, h);
-	BVHTree tree{scene};
 
 	std::vector<Vec4h> img{(size_t)w*h, {0, 0, 0, 0}};
 
 	raytrace(scene, w, h, s, img);
 
+	//auto r = scene.cam.generateRay({.5, .5});
+	//auto p = eval_ray(r, scene);
+	//printf("INTERSECTION\n");
+
 	io::saveEXR(out, w, h, img);
 }
+

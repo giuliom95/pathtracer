@@ -6,14 +6,18 @@ BBox::BBox(const Vec3f& p0, const Vec3f& p1) : pMin(p0), pMax(p0) {
 	enlarge(p1);
 }
 
-BBox::BBox(const Mesh& msh, const Scene& scn) : pMin(), pMax() {
-	const auto tri = scn.vtris[msh.t0];
-	pMin = pMax = scn.vtxs[tri[0]];
+BBox::BBox(	const Mesh& msh,
+			const std::vector<Vec3f>& vtxs,
+			const std::vector<Vec3i>& vtris)
+			: pMin(), pMax() {
+
+	const auto tri = vtris[msh.t0];
+	pMin = pMax = vtxs[tri[0]];
 	for(auto t = msh.t0; t < msh.t0 + msh.ntris; ++t) {
-		const auto tri = scn.vtris[t];
-		enlarge(scn.vtxs[tri[0]]);
-		enlarge(scn.vtxs[tri[1]]);
-		enlarge(scn.vtxs[tri[2]]);
+		const auto tri = vtris[t];
+		enlarge(vtxs[tri[0]]);
+		enlarge(vtxs[tri[1]]);
+		enlarge(vtxs[tri[2]]);
 	}
 };
 
@@ -34,12 +38,11 @@ void BBox::enlarge(const BBox& box) {
 }
 
 
-BVHNode* build_tree(
-	std::vector<BVHNode>& nodes,
-	std::vector<int>& elems,
-	const std::vector<BBox>& boxes,
-	const std::vector<Vec3f>& centroids,
-	const std::vector<Mesh>& meshes) {
+BVHNode* build_tree(std::vector<BVHNode>& nodes,
+					std::vector<int>& elems,
+					const std::vector<BBox>& boxes,
+					const std::vector<Vec3f>& centroids,
+					const std::vector<Mesh>& meshes) {
 
 	if(elems.size() == 1) {
 		BVHNode node{nullptr, nullptr, boxes[elems[0]], &meshes[elems[0]]};
@@ -101,24 +104,28 @@ BVHNode* build_tree(
 	}
 }
 
-BVHTree::BVHTree(const Scene& scn) : nodes(), root(nullptr) {
+BVHTree::BVHTree(	const std::vector<Mesh>& meshes,
+					const std::vector<Vec3f>& vtxs,
+					const std::vector<Vec3i>& vtris)
+					: nodes(), root(nullptr) {
+
 	// Enlarge the nodes vector to fit all the nodes
-	nodes.reserve(2*scn.meshes.size() - 1);
+	nodes.reserve(2*meshes.size() - 1);
 
 	std::vector<BBox> boxes{};
 	std::vector<Vec3f> centroids{};
 
 	// Compute bboxes and centroids
-	for(auto& m : scn.meshes) {
-		const BBox b{m, scn};
+	for(auto& m : meshes) {
+		const BBox b{m, vtxs, vtris};
 		boxes.push_back(b);
 
 		const auto c = 0.5 * (b.pMin + b.pMax);
 		centroids.push_back(c);
 	}
 
-	std::vector<int> elems((int)scn.meshes.size());
+	std::vector<int> elems((int)meshes.size());
 	for(auto i = 0; i < elems.size(); ++i) elems[i] = i;
 
-	root = build_tree(nodes, elems, boxes, centroids, scn.meshes);
+	root = build_tree(nodes, elems, boxes, centroids, meshes);
 }

@@ -1,7 +1,7 @@
 # options
 CXX=g++
-CXXFLAGS=-std=c++11 -O3
-TARGET=bin/raytracer
+CXXFLAGS=-std=c++11 -g -Wall
+TARGET=bin/pathtracer
 
 INCLUDES=-I/usr/include/OpenEXR
 

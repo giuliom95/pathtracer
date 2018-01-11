@@ -59,7 +59,10 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 	// Dummy fixed camera
 	Camera cam{{0, 2, 4}, {0, -0.3, -1}, {0,1,0}, 1, (float)(w)/h};
 
-	return {vtxs, norms, vtris, ntris, meshes, cam};
+	// Build BVH
+	BVHTree tree{meshes, vtxs, vtris};
+
+	return {vtxs, norms, vtris, ntris, meshes, cam, tree};
 }
 
 void io::saveEXR(	std::string path, 
