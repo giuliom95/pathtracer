@@ -28,7 +28,9 @@ const Ray Camera::generateRay(const Vec2f& uv) const {
 }
 
 
-const bool Scene::intersect(const Ray& r, const Mesh* mesh, int& triangle, Vec3f& tuv) const {
+const Mesh* Scene::intersect(const Ray& r, int& triangle, Vec3f& tuv) const {
+
+	const Mesh* mesh = nullptr;
 
 	std::vector<const BVHNode*> stack;
 	stack.reserve(meshes.size()*2-1);
@@ -36,13 +38,7 @@ const bool Scene::intersect(const Ray& r, const Mesh* mesh, int& triangle, Vec3f
 
 	auto t = r.tmax;
 
-	//printf("RAY\n");
 	while (!stack.empty()) {
-		
-		//for(auto& f : stack) {
-		//	printf("{%f, %f, %f}{%f, %f, %f} ", f->box.pMin[0], f->box.pMin[1], f->box.pMin[2], f->box.pMax[0], f->box.pMax[1], f->box.pMax[2]);
-		//}
-		//printf("\n");
 
 		auto node = stack.back();
 		stack.pop_back();
@@ -66,11 +62,7 @@ const bool Scene::intersect(const Ray& r, const Mesh* mesh, int& triangle, Vec3f
 					t = tuv[0];
 					mesh = m;
 				}
-				// TODO: MAY NOT HIT MESH
 			}
-
-			if (t < r.tmax)
-				return true;
 
 		} else {
 			stack.push_back(node->left);
@@ -78,5 +70,5 @@ const bool Scene::intersect(const Ray& r, const Mesh* mesh, int& triangle, Vec3f
 		}
 	}
 
-	return false;
+	return mesh;
 }

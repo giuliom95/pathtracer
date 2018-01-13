@@ -33,7 +33,7 @@ public:
 
 	const BVHTree bvh;
 
-	const bool intersect(const Ray&, const Mesh*, int&, Vec3f&) const;
+	const Mesh* intersect(const Ray&, int&, Vec3f&) const;
 };
 
 #endif
