@@ -45,10 +45,10 @@ void raytrace(const Scene& scn, int w, int h, int s, std::vector<Vec4h>& img) {
 
 void raytrace_mt(const Scene& scn, int w, int h, int s, std::vector<Vec4h>& img) {
 
-	auto nthreads = std::thread::hardware_concurrency();
+	const auto nthreads = std::thread::hardware_concurrency();
 	auto threads = std::vector<std::thread>();
 	for (auto tid = 0; tid < nthreads; tid++) {
-		threads.push_back(std::thread([=, &img]() {
+		threads.push_back(std::thread([=, &scn, &img]() {
 			for (auto j = tid; j < h; j += nthreads) {
 				for (auto i = 0; i < w; i++) {
 					img[i+j*w] = {0, 0, 0, 0};
@@ -77,7 +77,7 @@ int main(int argc, char** argv) {
 
 	std::vector<Vec4h> img{(size_t)w*h, {0, 0, 0, 0}};
 
-	raytrace(scene, w, h, s, img);
+	raytrace_mt(scene, w, h, s, img);
 
 	io::saveEXR(out, w, h, img);
 }
