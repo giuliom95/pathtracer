@@ -3,7 +3,6 @@
 
 #include "math.hpp"
 #include "mesh.hpp"
-#include "bvh.hpp"
 #include "scene.hpp"
 
 #include <string>

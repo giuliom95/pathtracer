@@ -106,8 +106,8 @@ BVHNode* build_tree(std::vector<BVHNode>& nodes,
 
 BVHTree::BVHTree(	const std::vector<Mesh>& meshes,
 					const std::vector<Vec3f>& vtxs,
-					const std::vector<Vec3i>& vtris)
-					: nodes(), root(nullptr) {
+					const std::vector<Vec3i>& vtris) :
+					nodes(), root(nullptr) {
 
 	// Enlarge the nodes vector to fit all the nodes
 	nodes.reserve(2*meshes.size() - 1);

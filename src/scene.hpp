@@ -34,6 +34,21 @@ public:
 	const BVHTree bvh;
 
 	const Mesh* intersect(const Ray&, int&, Vec3f&) const;
+
+	Scene(	const std::vector<Vec3f>& vtxs,
+			const std::vector<Vec3f>& norms, 
+			const std::vector<Vec3i>& vtris, 
+			const std::vector<Vec3i>& ntris,
+			const std::vector<Mesh>& mshs,
+			const Camera& camera) :
+			vtxs(vtxs),
+			norms(norms),
+			vtris(vtris),
+			ntris(ntris),
+			meshes(mshs),
+			cam(camera),
+			bvh{meshes, vtxs, vtris} {}
+
 };
 
 #endif
