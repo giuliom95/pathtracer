@@ -52,15 +52,18 @@ const Mesh* Scene::intersect(const Ray& r, int& triangle, Vec3f& tuv) const {
 				const auto v1 = vtxs[vtri[1]];
 				const auto v2 = vtxs[vtri[2]];
 
-				const auto tuv = intersectTriangle(r, v0, v1, v2);
+				const auto ints = intersectTriangle(r, v0, v1, v2);
 
-				if(	tuv[0] >= r.tmin &&
-					tuv[0] <= r.tmax &&
-					tuv[0] < t) {
+				if(	ints[0] >= r.tmin &&
+					ints[0] <= r.tmax &&
+					ints[0] < t) {
 
 					triangle = ti;
-					t = tuv[0];
+					t = ints[0];
 					mesh = m;
+					tuv[0] = ints[0];
+					tuv[1] = ints[1];
+					tuv[2] = ints[2];
 				}
 			}
 
