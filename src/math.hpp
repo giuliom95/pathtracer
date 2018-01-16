@@ -7,6 +7,8 @@
 
 #include <half.h>
 
+#include <random>
+#include <functional>
 
 inline const float max(const float a, const float b) {return a > b ? a : b;}
 inline const float min(const float a, const float b) {return a < b ? a : b;}
@@ -91,5 +93,18 @@ inline Vec3f intersectTriangle(const Ray& r, Vec3f v0, Vec3f v1, Vec3f v2) {
 	const auto t = f * dot(v02, q);
 	return {t, u, v};
 }
+
+
+
+//////// RANDOM NUMBERS ////////
+
+class Rand2 {
+    std::mt19937 gen;
+    std::uniform_real_distribution<float> distribution;
+public:
+    Rand2() : gen(42), distribution(0.0,1.0) {}
+    float next_float() {return distribution(gen);}
+};
+
 
 #endif
