@@ -98,12 +98,15 @@ inline Vec3f intersectTriangle(const Ray& r, Vec3f v0, Vec3f v1, Vec3f v2) {
 
 //////// RANDOM NUMBERS ////////
 
-class Rand2 {
-    std::mt19937 gen;
-    std::uniform_real_distribution<float> distribution;
+class RndGen {
+    std::mt19937* gen;
+    std::uniform_real_distribution<float>* distribution;
 public:
-    Rand2() : gen(42), distribution(0.0,1.0) {}
-    float next_float() {return distribution(gen);}
+    RndGen() {
+		gen = new std::mt19937(42);
+		distribution = new std::uniform_real_distribution<float>(0.0, 1.0);
+	} 
+    float next_float() const {return (*distribution)(*gen);}
 };
 
 

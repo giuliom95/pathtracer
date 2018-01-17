@@ -18,6 +18,7 @@ public:
 			const float focus = 1);
 
 	const Ray generateRay(const Vec2f&) const;
+	const Vec2f sample_camera(const int i, const int j, const int res, const RndGen&) const;
 };
 
 class Scene {

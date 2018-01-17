@@ -18,12 +18,19 @@ Camera::Camera(	const Vec3f& pos,
 	c2w = {vx, vy, -1*vz, pos};
 }
 
+
+const Vec2f Camera::sample_camera(const int i, const int j, const int res, const RndGen& rg) const {
+	const auto sh = res;
+	const auto sw = res * aspect;
+	const auto u = (i + rg.next_float()) / sw;
+	const auto v = (j + rg.next_float()) / sh;
+	return {u, v};
+}
+
 const Ray Camera::generateRay(const Vec2f& uv) const {
-
-	auto h = 2 * std::tan(yfov / 2);
-	auto w = h * aspect;
-	Vec3f q{w * focus * (uv[0] - 0.5f), h * focus * (uv[1] - 0.5f), -focus};
-
+	const auto h = 2 * std::tan(yfov / 2);
+	const auto w = h * aspect;
+	const Vec3f q{w * focus * (uv[0] - 0.5f), h * focus * (uv[1] - 0.5f), -focus};
 	return {transformPoint(c2w, {0,0,0}), transformVector(c2w, normalize(q))};
 }
 

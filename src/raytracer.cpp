@@ -42,8 +42,9 @@ void raytrace(const Scene& scn, int w, int h, int s, std::vector<Vec4h>& img) {
 	}
 }
 
+void raytrace_mt(const Scene& scn, int w, int h, int samples, std::vector<Vec4h>& img) {
 
-void raytrace_mt(const Scene& scn, int w, int h, int s, std::vector<Vec4h>& img) {
+	RndGen rg{};
 
 	const auto nthreads = std::thread::hardware_concurrency();
 	auto threads = std::vector<std::thread>();
@@ -52,13 +53,10 @@ void raytrace_mt(const Scene& scn, int w, int h, int s, std::vector<Vec4h>& img)
 			for (auto j = tid; j < h; j += nthreads) {
 				for (auto i = 0; i < w; i++) {
 					img[i+j*w] = {0, 0, 0, 0};
-					for (auto sj = 0; sj < s; sj++) {
-						for (auto si = 0; si < s; si++) {
-							auto u = (i + (si + 0.5f) / s) / w;
-							auto v = ((h - j) + (sj + 0.5f) / s) / h;
-							auto r = scn.cam.generateRay({u,v});
-							img[i+j*w] += eval_ray(r, scn);
-						}
+					for (auto s = 0; s < samples; ++s) {
+						const auto uv = scn.cam.sample_camera(i, j, h, rg);
+						const auto r = scn.cam.generateRay(uv);
+						img[i+j*w] += eval_ray(r, scn);
 					}
 				}
 			}
@@ -66,6 +64,7 @@ void raytrace_mt(const Scene& scn, int w, int h, int s, std::vector<Vec4h>& img)
 	}
 	for (auto& thread : threads) thread.join();
 }
+
 
 int main(int argc, char** argv) {
 
