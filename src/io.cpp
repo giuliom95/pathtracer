@@ -4,13 +4,9 @@
 #include <string>
 #include <iostream>
 
-Scene io::loadScene(std::string obj_path, 
-					std::string mtl_path, 
-					int w, int h) {
+Scene io::loadOBJ(std::string path, int w, int h) {
 
-	std::ifstream mtl_input{mtl_path};
-
-	std::ifstream obj_input{obj_path};
+	std::ifstream input{path};
 
 	std::vector<Vec3f> vtxs;
 	std::vector<Vec3f> norms;
@@ -19,19 +15,29 @@ Scene io::loadScene(std::string obj_path,
 	std::vector<Vec3i> ntris;
 
 	std::vector<Mesh> meshes;
+	std::vector<Material> mats;
+	mats.push_back({});
 
 	auto lastt0 = 0;
-
-	while(!obj_input.eof()) {
+	while(!input.eof()) {
 		std::string head;
-		obj_input >> head;
-		if(head == "v") {
+		input >> head;
+		if(head == "mtllib") {
+			std::string mtl_path;
+			input >> mtl_path;
+			std::ifstream mtl_input{mtl_path};
+			
+			while(!input.eof()) {
+
+			}
+
+		} else if(head == "v") {
 			Vec3f v;
-			obj_input >> v[0] >> v[1] >> v[2];
+			input >> v[0] >> v[1] >> v[2];
 			vtxs.push_back(v);
 		} else if(head == "vn") {
 			Vec3f n;
-			obj_input >> n[0] >> n[1] >> n[2];
+			input >> n[0] >> n[1] >> n[2];
 			n = normalize(n);
 			norms.push_back(n);
 		} else if(head == "f") {
@@ -40,7 +46,7 @@ Scene io::loadScene(std::string obj_path,
 			Vec3i ntri;
 			for(auto i = 0; i < 3; ++i) {
 				std::string elem;
-				obj_input >> elem;
+				input >> elem;
 				const auto sep1 = elem.find('/');
 				vtri[i] = std::stoi(elem.substr(0, sep1)) - 1;
 
@@ -53,18 +59,17 @@ Scene io::loadScene(std::string obj_path,
 		} else if(head == "g") {
 			// Save mesh data
 			if(!vtris.empty()) {
-				meshes.push_back({lastt0, (int)vtris.size()-lastt0});
+				meshes.push_back({lastt0, (int)vtris.size()-lastt0, mats[0]});
 				lastt0 = (int)vtris.size();
 			}
 		}
 	}
-
-	meshes.push_back({lastt0, (int)vtris.size()-lastt0});
+	meshes.push_back({lastt0, (int)vtris.size()-lastt0, mats[0]});
 
 	// Dummy fixed camera
 	Camera cam{{0, 2, 4}, {0, -0.3, -1}, {0,1,0}, 1, (float)(w)/h};
 
-	return {vtxs, norms, vtris, ntris, meshes, cam};
+	return {vtxs, norms, vtris, ntris, meshes, mats, cam};
 }
 
 void io::saveEXR(	std::string path, 
@@ -78,8 +83,7 @@ void io::saveEXR(	std::string path,
 
 bool io::parseArgs(	int argc, char** argv, 
 					int& w, int& h, int& s, 
-					std::string& in_obj, 
-					std::string& in_mtl,
+					std::string& in,
 					std::string& out) {
 
 	w = defaultScreenWidth;
@@ -98,22 +102,15 @@ bool io::parseArgs(	int argc, char** argv,
 			++i;
 		} else {
 			if(optCount == 0)
-				in_obj = std::string(argv[i]);
-			else if(optCount == 0)
-				in_mtl = std::string(argv[i]);
+				in = std::string(argv[i]);
 			else
 				out = std::string(argv[i]);
 			++optCount;
 		}
 	}
 
-	if(in_obj.size() == 0) {
+	if(in.size() == 0) {
 		std::cerr << "No obj specified" << std::endl;
-		return false;
-	}
-
-	if(in_mtl.size() == 0) {
-		std::cerr << "No mtl specified" << std::endl;
 		return false;
 	}
 

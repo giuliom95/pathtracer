@@ -3,6 +3,7 @@
 
 #include "math.hpp"
 #include "mesh.hpp"
+#include "material.hpp"
 #include "bvh.hpp"
 
 #include <vector>
@@ -29,7 +30,9 @@ public:
 	const std::vector<Vec3i> vtris;
 	const std::vector<Vec3i> ntris;
 
-	const std::vector<Mesh> meshes;
+	const std::vector<Mesh> mshs;
+	const std::vector<Material> mats;
+
 	const Camera cam;
 
 	const BVHTree bvh;
@@ -40,13 +43,15 @@ public:
 			const std::vector<Vec3f>& norms, 
 			const std::vector<Vec3i>& vtris, 
 			const std::vector<Vec3i>& ntris,
-			const std::vector<Mesh>& mshs,
+			const std::vector<Mesh>& meshes,
+			const std::vector<Material>& materials,
 			const Camera& camera) :
 			vtxs(vtxs),
 			norms(norms),
 			vtris(vtris),
 			ntris(ntris),
-			meshes(mshs),
+			mshs(meshes),
+			mats(materials),
 			cam(camera),
 			bvh{meshes, vtxs, vtris} {}
 

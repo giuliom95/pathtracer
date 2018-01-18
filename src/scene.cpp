@@ -40,7 +40,7 @@ const Mesh* Scene::intersect(const Ray& r, int& triangle, Vec3f& tuv) const {
 	const Mesh* mesh = nullptr;
 
 	std::vector<const BVHNode*> stack;
-	stack.reserve(meshes.size()*2-1);
+	stack.reserve(mshs.size()*2-1);
 	stack.push_back(bvh.root);
 
 	auto t = r.tmax;
