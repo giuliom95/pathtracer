@@ -17,7 +17,9 @@ namespace io {
 	static const int defaultScreenHeight = 1080;
 	static const int defaultPixelSamples = 1;
 
-	Scene loadOBJ(std::string path, int w, int h);
+	Scene loadScene(std::string obj_path,
+					std::string mtl_path, 
+					int w, int h);
 
 	void saveEXR(   std::string path, 
 					const int w, const int h, 
@@ -25,6 +27,8 @@ namespace io {
 
 	bool parseArgs(	int argc, char** argv, 
 					int& w, int& h, int& s, 
-					std::string& in, std::string& out);
+					std::string& in_obj, 
+					std::string& in_mtl,
+					std::string& out);
 }
 #endif

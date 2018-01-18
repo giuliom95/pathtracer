@@ -6,6 +6,9 @@
 
 #include <thread>
 
+
+
+
 Vec4h eval_ray(const Ray ray, const Scene& scene) {
 
 	int triangle;
@@ -69,10 +72,10 @@ void raytrace_mt(const Scene& scn, int w, int h, int samples, std::vector<Vec4h>
 int main(int argc, char** argv) {
 
 	int w, h, s;
-	std::string in, out;
-	if(!io::parseArgs(argc, argv, w, h, s, in, out)) return 1;
+	std::string in_obj, in_mtl, out;
+	if(!io::parseArgs(argc, argv, w, h, s, in_obj, in_mtl, out)) return 1;
 
-	auto scene = io::loadOBJ(in, w, h);
+	auto scene = io::loadScene(in_obj, in_mtl, w, h);
 
 	std::vector<Vec4h> img{(size_t)w*h, {0, 0, 0, 0}};
 

@@ -4,8 +4,13 @@
 #include <string>
 #include <iostream>
 
-Scene io::loadOBJ(std::string path, int w, int h) {
-	std::ifstream input{path};
+Scene io::loadScene(std::string obj_path, 
+					std::string mtl_path, 
+					int w, int h) {
+
+	std::ifstream mtl_input{mtl_path};
+
+	std::ifstream obj_input{obj_path};
 
 	std::vector<Vec3f> vtxs;
 	std::vector<Vec3f> norms;
@@ -17,16 +22,16 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 
 	auto lastt0 = 0;
 
-	while(!input.eof()) {
+	while(!obj_input.eof()) {
 		std::string head;
-		input >> head;
+		obj_input >> head;
 		if(head == "v") {
 			Vec3f v;
-			input >> v[0] >> v[1] >> v[2];
+			obj_input >> v[0] >> v[1] >> v[2];
 			vtxs.push_back(v);
 		} else if(head == "vn") {
 			Vec3f n;
-			input >> n[0] >> n[1] >> n[2];
+			obj_input >> n[0] >> n[1] >> n[2];
 			n = normalize(n);
 			norms.push_back(n);
 		} else if(head == "f") {
@@ -35,7 +40,7 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 			Vec3i ntri;
 			for(auto i = 0; i < 3; ++i) {
 				std::string elem;
-				input >> elem;
+				obj_input >> elem;
 				const auto sep1 = elem.find('/');
 				vtri[i] = std::stoi(elem.substr(0, sep1)) - 1;
 
@@ -73,7 +78,9 @@ void io::saveEXR(	std::string path,
 
 bool io::parseArgs(	int argc, char** argv, 
 					int& w, int& h, int& s, 
-					std::string& in, std::string& out) {
+					std::string& in_obj, 
+					std::string& in_mtl,
+					std::string& out) {
 
 	w = defaultScreenWidth;
 	h = defaultScreenHeight;
@@ -91,15 +98,22 @@ bool io::parseArgs(	int argc, char** argv,
 			++i;
 		} else {
 			if(optCount == 0)
-				in = std::string(argv[i]);
+				in_obj = std::string(argv[i]);
+			else if(optCount == 0)
+				in_mtl = std::string(argv[i]);
 			else
 				out = std::string(argv[i]);
 			++optCount;
 		}
 	}
 
-	if(in.size() == 0) {
-		std::cerr << "No input specified" << std::endl;
+	if(in_obj.size() == 0) {
+		std::cerr << "No obj specified" << std::endl;
+		return false;
+	}
+
+	if(in_mtl.size() == 0) {
+		std::cerr << "No mtl specified" << std::endl;
 		return false;
 	}
 
