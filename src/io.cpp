@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <string>
+#include <map>
 #include <iostream>
 
 Scene io::loadOBJ(std::string path, int w, int h) {
@@ -16,20 +17,45 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 
 	std::vector<Mesh> meshes;
 	std::vector<Material> mats;
+	std::map<std::string, int> mats_map;
+
 	mats.push_back({});
 
 	auto lastt0 = 0;
+	int cur_mat_idx = 0;
 	while(!input.eof()) {
 		std::string head;
 		input >> head;
 		if(head == "mtllib") {
-			std::string mtl_path;
-			input >> mtl_path;
-			std::ifstream mtl_input{mtl_path};
+			std::string mtl_file;
+			input >> mtl_file;
+			// Build the path to the mtl file using the obj path
+			const auto pos = path.find_last_of('/');
+    		const auto mtl_dir = path.substr(0, pos+1);
+			std::ifstream mtl_input{mtl_dir + mtl_file};
 			
-			while(!input.eof()) {
-
+			std::string mat_name{""};
+			Vec3f kd, ke;
+			while(!mtl_input.eof()) {
+				std::string mtl_head;
+				mtl_input >> mtl_head;
+				if(mtl_head == "newmtl") {
+					if(mat_name != "") {
+						mats.push_back({kd, ke});
+						mats_map.insert(std::make_pair(mat_name, mats.size()-1));
+					}
+					mtl_input >> mat_name;
+					kd = {};
+					ke = {};
+				} else if(mtl_head == "Kd") {
+					mtl_input >> kd[0] >> kd[1] >> kd[2];
+				} else if(mtl_head == "Ke") {
+					mtl_input >> ke[0] >> ke[1] >> ke[2];
+				}
 			}
+
+			mats.push_back({kd, ke});
+			mats_map.insert(std::make_pair(mat_name, mats.size()-1));
 
 		} else if(head == "v") {
 			Vec3f v;
@@ -56,18 +82,23 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 			}
 			vtris.push_back(vtri);
 			ntris.push_back(ntri);
-		} else if(head == "g") {
+		} else if(head == "o") {
 			// Save mesh data
 			if(!vtris.empty()) {
-				meshes.push_back({lastt0, (int)vtris.size()-lastt0, mats[0]});
+				meshes.push_back({lastt0, (int)vtris.size()-lastt0, mats[cur_mat_idx]});
 				lastt0 = (int)vtris.size();
 			}
+		} else if(head == "usemtl") {
+			std::string mat_name;
+			input >> mat_name;
+			cur_mat_idx = mats_map.at(mat_name);
 		}
 	}
-	meshes.push_back({lastt0, (int)vtris.size()-lastt0, mats[0]});
+	meshes.push_back({lastt0, (int)vtris.size()-lastt0, mats[cur_mat_idx]});
 
 	// Dummy fixed camera
-	Camera cam{{0, 2, 4}, {0, -0.3, -1}, {0,1,0}, 1, (float)(w)/h};
+	//Camera cam{{0, 2, 4}, {0, -0.3, -1}, {0,1,0}, 1, (float)(w)/h};
+	Camera cam{{0, 1, 5.15}, {0,0,1}, {0,1,0}, 1, (float)(w)/h};
 
 	return {vtxs, norms, vtris, ntris, meshes, mats, cam};
 }
