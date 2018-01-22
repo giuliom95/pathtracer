@@ -20,6 +20,8 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 	std::map<std::string, int> mats_map;
 
 	mats.push_back({});
+	// HACK: The pointer of the first mesh become invalid
+	meshes.push_back({0,0,mats[0]});
 
 	auto lastt0 = 0;
 	int cur_mat_idx = 0;
@@ -82,7 +84,7 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 			}
 			vtris.push_back(vtri);
 			ntris.push_back(ntri);
-		} else if(head == "o") {
+		} else if(head == "g") {
 			// Save mesh data
 			if(!vtris.empty()) {
 				meshes.push_back({lastt0, (int)vtris.size()-lastt0, mats[cur_mat_idx]});
@@ -98,7 +100,7 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 
 	// Dummy fixed camera
 	//Camera cam{{0, 2, 4}, {0, -0.3, -1}, {0,1,0}, 1, (float)(w)/h};
-	Camera cam{{0, 1, 5.15}, {0,0,1}, {0,1,0}, 1, (float)(w)/h};
+	Camera cam{{0, 1, 5.15}, {0,0,-1}, {0,1,0}, 1, (float)(w)/h};
 
 	return {vtxs, norms, vtris, ntris, meshes, mats, cam};
 }

@@ -28,22 +28,6 @@ Vec4h eval_ray(const Ray ray, const Scene& scene) {
 	}
 }
 
-void raytrace(const Scene& scn, int w, int h, int s, std::vector<Vec4h>& img) {
-
-	for(auto j = 0; j < h; ++j) {
-		for(auto i = 0; i < w; ++i) {
-			img[i+j*w] = {0, 0, 0, 0};
-			for (auto sj = 0; sj < s; sj++) {
-				for(auto si = 0; si < s; si++) {
-					auto u = (i + (si + 0.5f) / s) / w;
-					auto v = ((h - j) + (sj + 0.5f) / s) / h;
-					auto r = scn.cam.generateRay({u,v});
-					img[i+j*w] += eval_ray(r, scn);
-				}
-			}
-		}
-	}
-}
 
 void raytrace_mt(const Scene& scn, int w, int h, int samples, std::vector<Vec4h>& img) {
 
@@ -55,12 +39,17 @@ void raytrace_mt(const Scene& scn, int w, int h, int samples, std::vector<Vec4h>
 		threads.push_back(std::thread([=, &scn, &img]() {
 			for (auto j = tid; j < h; j += nthreads) {
 				for (auto i = 0; i < w; i++) {
-					img[i+j*w] = {0, 0, 0, 0};
+					const auto buf_idx = i+j*w;
+					img[buf_idx] = {0, 0, 0, 0};
 					for (auto s = 0; s < samples; ++s) {
 						const auto uv = scn.cam.sample_camera(i, j, h, rg);
 						const auto r = scn.cam.generateRay(uv);
-						img[i+j*w] += eval_ray(r, scn);
+						img[buf_idx] += eval_ray(r, scn);
 					}
+					img[buf_idx][0] /= samples; 
+					img[buf_idx][1] /= samples;
+					img[buf_idx][2] /= samples;
+					img[buf_idx][3] /= samples;
 				}
 			}
 		}));
