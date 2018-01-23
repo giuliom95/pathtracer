@@ -51,8 +51,8 @@ const Mesh* Scene::intersect(const Ray& r, int& triangle, Vec3f& tuv) const {
 		stack.pop_back();
 		if (!node->box.intersect(r)) continue;
 
-		if (node->mesh != nullptr) {
-			auto* m = node->mesh;
+		if (node->mesh != -1) {
+			auto* m = &mshs[node->mesh];
 			for(auto ti = 0; ti < m->ntris; ++ti) {
 				const auto vtri = vtris[m->t0 + ti];
 				const auto v0 = vtxs[vtri[0]];

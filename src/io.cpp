@@ -20,8 +20,6 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 	std::map<std::string, int> mats_map;
 
 	mats.push_back({});
-	// HACK: The pointer of the first mesh become invalid
-	meshes.push_back({0,0,mats[0]});
 
 	auto lastt0 = 0;
 	int cur_mat_idx = 0;

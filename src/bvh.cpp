@@ -41,11 +41,10 @@ void BBox::enlarge(const BBox& box) {
 BVHNode* build_tree(std::vector<BVHNode>& nodes,
 					std::vector<int>& elems,
 					const std::vector<BBox>& boxes,
-					const std::vector<Vec3f>& centroids,
-					const std::vector<Mesh>& meshes) {
+					const std::vector<Vec3f>& centroids) {
 
 	if(elems.size() == 1) {
-		BVHNode node{nullptr, nullptr, boxes[elems[0]], &meshes[elems[0]]};
+		BVHNode node{nullptr, nullptr, boxes[elems[0]], elems[0]};
 		nodes.push_back(node);
 		return &nodes[nodes.size()-1];
 	} else {
@@ -89,8 +88,8 @@ BVHNode* build_tree(std::vector<BVHNode>& nodes,
 			group_r[i] = elems[i + mid];
 
 		// Recursion
-		auto ptr_l = build_tree(nodes, group_l, boxes, centroids, meshes);
-		auto ptr_r = build_tree(nodes, group_r, boxes, centroids, meshes);
+		auto ptr_l = build_tree(nodes, group_l, boxes, centroids);
+		auto ptr_r = build_tree(nodes, group_r, boxes, centroids);
 
 		// Build bounding box
 		BBox b = boxes[elems[0]];
@@ -98,7 +97,7 @@ BVHNode* build_tree(std::vector<BVHNode>& nodes,
 			b.enlarge(boxes[elems[i]]);
 
 		// Create node and return
-		BVHNode node{ptr_l, ptr_r, b, NULL};
+		BVHNode node{ptr_l, ptr_r, b, -1};
 		nodes.push_back(node);
 		return &nodes[nodes.size()-1];
 	}
@@ -127,5 +126,5 @@ BVHTree::BVHTree(	const std::vector<Mesh>& meshes,
 	std::vector<int> elems((int)meshes.size());
 	for(auto i = 0; i < elems.size(); ++i) elems[i] = i;
 
-	root = build_tree(nodes, elems, boxes, centroids, meshes);
+	root = build_tree(nodes, elems, boxes, centroids);
 }

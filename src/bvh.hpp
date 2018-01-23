@@ -37,7 +37,7 @@ public:
 	const BVHNode* left;
 	const BVHNode* right;
 	const BBox box;
-	const Mesh* mesh;
+	const int mesh;	//This contains the index of the mesh inside the mesh vector of the scene
 };
 
 class BVHTree {
