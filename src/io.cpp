@@ -98,7 +98,7 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 
 	// Dummy fixed camera
 	//Camera cam{{0, 2, 4}, {0, -0.3, -1}, {0,1,0}, 1, (float)(w)/h};
-	Camera cam{{0, 1, 5.15}, {0,0,-1}, {0,1,0}, 1, (float)(w)/h};
+	Camera cam{{0, 1, 4}, {0,0,-1}, {0,1,0}, 1, (float)(w)/h};
 
 	return {vtxs, norms, vtris, ntris, meshes, mats, cam};
 }

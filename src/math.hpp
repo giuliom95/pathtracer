@@ -10,6 +10,8 @@
 #include <random>
 #include <functional>
 
+#define PI 3.14159f
+
 inline const float max(const float a, const float b) {return a > b ? a : b;}
 inline const float min(const float a, const float b) {return a < b ? a : b;}
 
@@ -27,6 +29,7 @@ inline const Vec3f operator-	(const Vec3f& a, const Vec3f& b) { return {a[0]-b[0
 inline const Vec3f operator+	(const Vec3f& a, const Vec3f& b) { return {a[0]+b[0], a[1]+b[1], a[2]+b[2]}; }
 inline const Vec3f operator*	(const Vec3f& a, const Vec3f& b) { return {a[0]*b[0], a[1]*b[1], a[2]*b[2]}; }
 inline const Vec3f operator*	(const float f,  const Vec3f& v) { return {f*v[0], f*v[1], f*v[2]}; }
+inline const Vec3f operator/	(const Vec3f& v, const float f) { return {v[0]/f, v[1]/f, v[2]/f}; }
 inline const float length		(const Vec3f& v) { return std::sqrt(dot(v, v)); }
 inline const Vec3f normalize	(const Vec3f& v) { return (1 / length(v))*v; }
 
@@ -58,6 +61,17 @@ public:
 
 inline const Vec3f transformPoint	(const Mat4& m, const Vec3f& p) { return {m(0,0)*p[0] + m(0,1)*p[1] + m(0,2)*p[2] + m(0,3), m(1,0)*p[0] + m(1,1)*p[1] + m(1,2)*p[2] + m(1,3), m(2,0)*p[0] + m(2,1)*p[1] + m(2,2)*p[2] + m(2,3)}; }
 inline const Vec3f transformVector	(const Mat4& m, const Vec3f& v) { return {m(0,0)*v[0] + m(0,1)*v[1] + m(0,2)*v[2], m(1,0)*v[0] + m(1,1)*v[1] + m(1,2)*v[2], m(2,0)*v[0] + m(2,1)*v[1] + m(2,2)*v[2]}; }
+
+inline const Mat4 refFromVec (const Vec3f& v) {
+	Vec3f v2{};
+	if (std::abs(v[0]) > std::abs(v[1]))
+		v2 = Vec3f{-v[2], 0, v[0]} / std::sqrt(v[0] * v[0] + v[2] * v[2]);
+	else
+		v2 = Vec3f{0, v[2], -v[1]} / std::sqrt(v[1] * v[1] + v[2] * v[2]);
+	
+	const auto v3 = cross(v, v2);
+	return {v, v2, v3, {}};
+}
 
 //////// RAY ////////
 
