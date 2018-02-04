@@ -9,15 +9,15 @@
 #define MAX_BOUNCES 4
 
 
-const Vec3f sample_hemisphere(Vec3f p, Vec3f n, const RndGen& rg) {
-	const auto r2 = rg.next_float();
-	const auto a = 2*PI*rg.next_float();
-	const auto b = std::sqrt(1-r2);
-
-	const Vec3f o{b*std::cos(a), b*std::sin(a), r2};
+const Vec3f sample_hemisphere(Vec3f n, const RndGen& rg) {
+	const auto r0 = rg.next_float();
+	const auto r1 = rg.next_float();
+	const auto z = std::sqrt(r0);
+    const auto r = std::sqrt(1 - z * z);
+    const auto phi = 2 * PI * r1;
 
 	const auto mat = refFromVec(n);
-	return transformVector(mat, {r2, b*std::sin(a), b*std::cos(a)});
+	return transformVector(mat, {z, r * std::cos(phi), r * std::sin(phi)});
 }
 
 
@@ -40,7 +40,7 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 
 		const auto kd = mesh->mat.kd;
 
-		const auto d = sample_hemisphere(p, n, rg);
+		const auto d = sample_hemisphere(n, rg);
 		const auto li = estimate_li({p+0.0001*n, d}, scene, bounces-1, rg);
 		const auto lr = li*kd;
 
