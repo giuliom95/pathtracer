@@ -1,5 +1,7 @@
 # Path tracer
 
+![Sample image](https://giuliom95.github.io/projects/pt.jpg)
+
 A recursive naive path tracer written in modern C++.  
 Details:
 * Multithread.
