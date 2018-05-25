@@ -25,3 +25,6 @@ bin/%.o: src/%.cpp $(HDRS)
 # tidy up
 clean:
 	rm -f $(TARGET) $(OBJS)
+
+all: bin/pathtracer
+	@echo "All done!"

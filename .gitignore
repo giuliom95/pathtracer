@@ -4,3 +4,4 @@ notes
 *.obj
 *.mtl
 *.sh
+.vscode
