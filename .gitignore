@@ -2,4 +2,5 @@ bin
 out
 notes
 *.obj
+*.mtl
 *.sh
