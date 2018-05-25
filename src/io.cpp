@@ -8,6 +8,11 @@
 Scene io::loadOBJ(std::string path, int w, int h) {
 
 	std::ifstream input{path};
+	
+	if(!input) {
+		std::cerr << "ERROR: Impossible to open \"" << path << "\"!\n";
+		throw;
+	}
 
 	std::vector<Vec3f> vtxs;
 	std::vector<Vec3f> norms;
@@ -22,7 +27,7 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 	mats.push_back({});
 
 	auto lastt0 = 0;
-	int cur_mat_idx = 0;
+	auto cur_mat_idx = 0;
 	while(!input.eof()) {
 		std::string head;
 		input >> head;
@@ -31,9 +36,13 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 			input >> mtl_file;
 			// Build the path to the mtl file using the obj path
 			const auto pos = path.find_last_of('/');
-    		const auto mtl_dir = path.substr(0, pos+1);
-			std::ifstream mtl_input{mtl_dir + mtl_file};
-			
+    		const auto mtl_path = path.substr(0, pos+1) + mtl_file;
+			std::ifstream mtl_input{mtl_path};
+			if(!mtl_input) {
+				std::cerr << "ERROR: Impossible to open the MTL file \"" << mtl_path << "\" from \"" << path << "\"!\n";
+				throw;
+			}
+
 			std::string mat_name{""};
 			Vec3f kd, ke;
 			while(!mtl_input.eof()) {
