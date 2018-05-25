@@ -49,8 +49,8 @@ BVHNode* build_tree(std::vector<BVHNode>& nodes,
 		return &nodes[nodes.size()-1];
 	} else {
 		// Compute the span of the centroids for each dimension
-		Vec3f minCentroid{centroids[elems[0]]};
-		Vec3f maxCentroid{centroids[elems[0]]};
+		auto minCentroid = centroids[elems[0]];
+		auto maxCentroid = centroids[elems[0]];
 		for(auto e = 1; e < elems.size(); ++e) {
 			auto c = centroids[e];
 			minCentroid[0] = min(minCentroid[0], c[0]);
