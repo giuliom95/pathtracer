@@ -51,7 +51,7 @@ BVHNode* build_tree(std::vector<BVHNode>& nodes,
 		// Compute the span of the centroids for each dimension
 		auto minCentroid = centroids[elems[0]];
 		auto maxCentroid = centroids[elems[0]];
-		for(auto e = 1; e < elems.size(); ++e) {
+		for(unsigned e = 1; e < elems.size(); ++e) {
 			auto c = centroids[e];
 			minCentroid[0] = min(minCentroid[0], c[0]);
 			minCentroid[1] = min(minCentroid[1], c[1]);
@@ -65,8 +65,8 @@ BVHNode* build_tree(std::vector<BVHNode>& nodes,
 		// Get longer span
 		auto axis = 0;
 		const auto spans = maxCentroid - minCentroid;
-		if(spans[2] > spans[1] > spans[0]) axis = 2;
-		if(spans[1] > spans[2] > spans[0]) axis = 1;
+		if(spans[2] > spans[1] && spans[1] > spans[0]) axis = 2;
+		if(spans[1] > spans[2] && spans[2] > spans[0]) axis = 1;
 
 
 		const auto size = elems.size();
@@ -82,9 +82,9 @@ BVHNode* build_tree(std::vector<BVHNode>& nodes,
 		// Build the two groups
 		std::vector<int> group_l(mid);
 		std::vector<int> group_r(size - mid);
-		for(auto i = 0; i < mid; ++i)
+		for(unsigned i = 0; i < mid; ++i)
 			group_l[i] = elems[i];
-		for(auto i = 0; i < (size - mid); ++i)
+		for(unsigned i = 0; i < (size - mid); ++i)
 			group_r[i] = elems[i + mid];
 
 		// Recursion
@@ -93,7 +93,7 @@ BVHNode* build_tree(std::vector<BVHNode>& nodes,
 
 		// Build bounding box
 		BBox b = boxes[elems[0]];
-		for(auto i = 1; i < elems.size(); ++i)
+		for(unsigned i = 1; i < elems.size(); ++i)
 			b.enlarge(boxes[elems[i]]);
 
 		// Create node and return
@@ -124,7 +124,7 @@ BVHTree::BVHTree(	const std::vector<Mesh>& meshes,
 	}
 
 	std::vector<int> elems((int)meshes.size());
-	for(auto i = 0; i < elems.size(); ++i) elems[i] = i;
+	for(unsigned i = 0; i < elems.size(); ++i) elems[i] = i;
 
 	root = build_tree(nodes, elems, boxes, centroids);
 }
