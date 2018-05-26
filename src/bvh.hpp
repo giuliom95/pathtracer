@@ -37,7 +37,18 @@ public:
 	const BVHNode* left;
 	const BVHNode* right;
 	const BBox box;
-	const std::vector<int> tris;	// The indexes of the triangles inside the leaf
+	std::vector<int> tris;	// The indexes of the triangles inside the leaf
+
+	BVHNode(const BVHNode* left,
+			const BVHNode* right,
+			const BBox box,
+			const std::vector<int> elems) :
+			left(left), right(right), box(box) {
+		
+		for(auto t : elems) {
+			tris.push_back(t);
+		}
+	}
 };
 
 class BVHTree {

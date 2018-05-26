@@ -36,10 +36,12 @@ const Ray Camera::generateRay(const Vec2f& uv) const {
 
 const Mesh* Scene::intersect(const Ray& r, int& triangle, Vec3f& tuv) const {
 
+	triangle = -1;	// It's only for precaution
+
 	auto intersection = false;
 
 	std::vector<const BVHNode*> stack;
-	stack.reserve(mshs.size()*2-1);
+	stack.reserve(2*(vtris.size()/4)-1);
 	stack.push_back(bvh.root);
 
 	auto t = r.tmax;

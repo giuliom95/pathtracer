@@ -82,6 +82,28 @@ void raytrace_mt(const Scene& scn, int w, unsigned h, int samples, std::vector<V
 }
 
 
+void debug_rt(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec4h>& img) {
+	RndGen rg{};
+	for (unsigned j = 0; j < h; ++j) {
+		for (auto i = 0; i < w; ++i) {
+			const auto buf_idx = i+j*w;
+			img[buf_idx] = {0, 0, 0, 1};
+			const auto uv = scn.cam.sample_camera(i, j, h, rg);
+			const auto r = scn.cam.generateRay(uv);
+
+			int tid;	// Triangle index relative to scene.ntris
+			Vec3f tuv;	// Ray param, uv coords of triangle
+
+			scn.intersect(r, tid, tuv);
+			if(tid >= 0) {
+				img[buf_idx][0] += tid;
+				img[buf_idx][1] += tid;
+				img[buf_idx][2] += tid;
+			}
+		}
+	}
+}
+
 int main(int argc, char** argv) {
 
 	int w, h, s;
