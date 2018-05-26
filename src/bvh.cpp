@@ -21,7 +21,7 @@ BBox::BBox(	const Mesh& msh,
 	}
 };
 
-void BBox::enlarge(const Vec3f& p) {
+const void BBox::enlarge(const Vec3f& p) {
 	pMin[0] = min(pMin[0], p[0]);
 	pMin[1] = min(pMin[1], p[1]);
 	pMin[2] = min(pMin[2], p[2]);
@@ -32,7 +32,7 @@ void BBox::enlarge(const Vec3f& p) {
 }
 
 
-void BBox::enlarge(const BBox& box) {
+const void BBox::enlarge(const BBox& box) {
 	enlarge(box.pMin);
 	enlarge(box.pMax);
 }
@@ -41,10 +41,11 @@ void BBox::enlarge(const BBox& box) {
 BVHNode* build_tree(std::vector<BVHNode>& nodes,
 					std::vector<int>& elems,
 					const std::vector<BBox>& boxes,
-					const std::vector<Vec3f>& centroids) {
+					const std::vector<Vec3f>& centroids,
+					const unsigned mintris, const unsigned maxrec) {
 
-	if(elems.size() == 1) {
-		BVHNode node{nullptr, nullptr, boxes[elems[0]], elems[0]};
+	if(elems.size() <= mintris || maxrec == 0) {
+		BVHNode node{nullptr, nullptr, boxes[elems[0]], elems};		// Probably I need to do a copy here
 		nodes.push_back(node);
 		return &nodes[nodes.size()-1];
 	} else {
@@ -88,8 +89,8 @@ BVHNode* build_tree(std::vector<BVHNode>& nodes,
 			group_r[i] = elems[i + mid];
 
 		// Recursion
-		auto ptr_l = build_tree(nodes, group_l, boxes, centroids);
-		auto ptr_r = build_tree(nodes, group_r, boxes, centroids);
+		auto ptr_l = build_tree(nodes, group_l, boxes, centroids, mintris, maxrec - 1);
+		auto ptr_r = build_tree(nodes, group_r, boxes, centroids, mintris, maxrec - 1);
 
 		// Build bounding box
 		BBox b = boxes[elems[0]];
@@ -97,34 +98,40 @@ BVHNode* build_tree(std::vector<BVHNode>& nodes,
 			b.enlarge(boxes[elems[i]]);
 
 		// Create node and return
-		BVHNode node{ptr_l, ptr_r, b, -1};
+		BVHNode node{ptr_l, ptr_r, b, {}};
 		nodes.push_back(node);
 		return &nodes[nodes.size()-1];
 	}
 }
 
-BVHTree::BVHTree(	const std::vector<Mesh>& meshes,
-					const std::vector<Vec3f>& vtxs,
+
+BVHTree::BVHTree(	const std::vector<Vec3f>& vtxs,
 					const std::vector<Vec3i>& vtris) :
 					nodes(), root(nullptr) {
 
+	const unsigned ntris{vtris.size()};
+
 	// Enlarge the nodes vector to fit all the nodes
-	nodes.reserve(2*meshes.size() - 1);
+	nodes.reserve(2*(ntris/4) - 1);
 
 	std::vector<BBox> boxes{};
 	std::vector<Vec3f> centroids{};
 
 	// Compute bboxes and centroids
-	for(auto& m : meshes) {
-		const BBox b{m, vtxs, vtris};
+	for(const auto& t : vtris) {
+		BBox b{vtxs[t[0]], vtxs[t[1]]};
+		b.enlarge(vtxs[t[2]]);
 		boxes.push_back(b);
 
 		const auto c = 0.5 * (b.pMin + b.pMax);
 		centroids.push_back(c);
 	}
 
-	std::vector<int> elems((int)meshes.size());
-	for(unsigned i = 0; i < elems.size(); ++i) elems[i] = i;
+	std::vector<int> elems(ntris);
+	for(unsigned i = 0; i < ntris; ++i) elems[i] = i;
 
-	root = build_tree(nodes, elems, boxes, centroids);
+	const auto max_recursion_steps = 10;
+	const auto min_tris_per_leaf = 10;
+	root = build_tree(	nodes, elems, boxes, centroids, 
+						min_tris_per_leaf, max_recursion_steps);
 }

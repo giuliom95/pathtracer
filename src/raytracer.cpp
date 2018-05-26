@@ -23,15 +23,15 @@ const Vec3f sample_hemisphere(Vec3f n, const RndGen& rg) {
 
 Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& rg) {
 
-	int triangle;
-	Vec3f tuv;
+	int tid;	// Triangle index relative to scene.ntris
+	Vec3f tuv;	// Ray param, uv coords of triangle
 
-	const Mesh* mesh = scene.intersect(ray, triangle, tuv);
+	const Mesh* mesh = scene.intersect(ray, tid, tuv);
 	if(mesh != nullptr) {
 		if (bounces == 0)
 			return mesh->mat.ke;
 
-		const auto ntri = scene.ntris[mesh->t0 + triangle];
+		const auto ntri = scene.ntris[tid];
 		const auto n0 = scene.norms[ntri[0]];
 		const auto n1 = scene.norms[ntri[1]];
 		const auto n2 = scene.norms[ntri[2]];	
@@ -51,15 +51,15 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 }
 
 
-void raytrace_mt(const Scene& scn, int w, int h, int samples, std::vector<Vec4h>& img) {
+void raytrace_mt(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec4h>& img) {
 
 	RndGen rg{};
 
 	const auto nthreads = std::thread::hardware_concurrency();
 	auto threads = std::vector<std::thread>();
-	for (auto tid = 0; tid < nthreads; tid++) {
+	for (unsigned tid = 0; tid < nthreads; tid++) {
 		threads.push_back(std::thread([=, &scn, &img]() {
-			for (auto j = tid; j < h; j += nthreads) {
+			for (unsigned j = tid; j < h; j += nthreads) {
 				for (auto i = 0; i < w; i++) {
 					const auto buf_idx = i+j*w;
 					img[buf_idx] = {0, 0, 0, 1};

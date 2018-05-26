@@ -16,8 +16,8 @@ public:
 			const std::vector<Vec3f>&,
 			const std::vector<Vec3i>&);
 
-	void enlarge(const Vec3f& p);
-	void enlarge(const BBox& box);
+	const void enlarge(const Vec3f& p);
+	const void enlarge(const BBox& box);
 
 	inline const bool intersect (const Ray& r) const {
 		auto t0 = (pMin - r.o) * r.invd;
@@ -37,15 +37,14 @@ public:
 	const BVHNode* left;
 	const BVHNode* right;
 	const BBox box;
-	const int mesh;	//This contains the index of the mesh inside the mesh vector of the scene
+	const std::vector<int> tris;	// The indexes of the triangles inside the leaf
 };
 
 class BVHTree {
 	std::vector<BVHNode> nodes;
 public:
 	BVHNode* root;
-	BVHTree(const std::vector<Mesh>& meshes,
-			const std::vector<Vec3f>& vtxs,
+	BVHTree(const std::vector<Vec3f>& vtxs,
 			const std::vector<Vec3i>& vtris);
 };
 

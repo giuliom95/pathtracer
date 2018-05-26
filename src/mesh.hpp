@@ -5,8 +5,8 @@
 
 class Mesh {
 public:
-	const int t0;
-	const int ntris;
+	const int t0;			// Index of the first triangle 
+	const int ntris;		// Number of tris
 	const Material& mat;
 
 	Mesh(int t0, int ntris, const Material& mat)

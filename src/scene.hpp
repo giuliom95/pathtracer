@@ -20,15 +20,18 @@ public:
 
 	const Ray generateRay(const Vec2f&) const;
 	const Vec2f sample_camera(const int i, const int j, const int res, const RndGen&) const;
+
+private:
+	const float h, w;
 };
 
 class Scene {
 public:
-	const std::vector<Vec3f> vtxs;
-	const std::vector<Vec3f> norms;
+	const std::vector<Vec3f> vtxs;		// Vertices list
+	const std::vector<Vec3f> norms;		// Normals list
 
-	const std::vector<Vec3i> vtris;
-	const std::vector<Vec3i> ntris;
+	const std::vector<Vec3i> vtris;		// Triangle->"vertex indexes" mapping
+	const std::vector<Vec3i> ntris;		// Triangle->"normal indexes" mapping
 
 	const std::vector<Mesh> mshs;
 	const std::vector<Material> mats;
@@ -53,7 +56,7 @@ public:
 			mshs(meshes),
 			mats(materials),
 			cam(camera),
-			bvh{meshes, vtxs, vtris} {}
+			bvh{vtxs, vtris} {}
 
 };
 

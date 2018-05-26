@@ -9,7 +9,8 @@ Camera::Camera(	const Vec3f& pos,
 				const float yfov,
 				const float aspect,
 				const float focus)
-				: yfov(yfov), aspect(aspect), focus(focus) {
+				: yfov(yfov), aspect(aspect), focus(focus),
+				  h{2 * std::tan(yfov / 2)}, w{h * aspect} {
 
 	const auto vz = normalize(look);
 	const auto vy = normalize(up);
@@ -28,8 +29,6 @@ const Vec2f Camera::sample_camera(const int i, const int j, const int res, const
 }
 
 const Ray Camera::generateRay(const Vec2f& uv) const {
-	const auto h = 2 * std::tan(yfov / 2);
-	const auto w = h * aspect;
 	const Vec3f q{w * focus * (uv[0] - 0.5f), h * focus * (uv[1] - 0.5f), -focus};
 	return {transformPoint(c2w, {0,0,0}), transformVector(c2w, normalize(q))};
 }
@@ -37,7 +36,7 @@ const Ray Camera::generateRay(const Vec2f& uv) const {
 
 const Mesh* Scene::intersect(const Ray& r, int& triangle, Vec3f& tuv) const {
 
-	const Mesh* mesh = nullptr;
+	auto intersection = false;
 
 	std::vector<const BVHNode*> stack;
 	stack.reserve(mshs.size()*2-1);
@@ -51,10 +50,11 @@ const Mesh* Scene::intersect(const Ray& r, int& triangle, Vec3f& tuv) const {
 		stack.pop_back();
 		if (!node->box.intersect(r)) continue;
 
-		if (node->mesh != -1) {
-			auto* m = &mshs[node->mesh];
-			for(auto ti = 0; ti < m->ntris; ++ti) {
-				const auto vtri = vtris[m->t0 + ti];
+		const auto tris = node->tris;
+		const auto numtris = tris.size();
+		if (numtris > 0) {
+			for(const auto ti : tris) {
+				const auto vtri = vtris[ti];
 				const auto v0 = vtxs[vtri[0]];
 				const auto v1 = vtxs[vtri[1]];
 				const auto v2 = vtxs[vtri[2]];
@@ -67,10 +67,10 @@ const Mesh* Scene::intersect(const Ray& r, int& triangle, Vec3f& tuv) const {
 
 					triangle = ti;
 					t = ints[0];
-					mesh = m;
 					tuv[0] = ints[0];
 					tuv[1] = ints[1];
 					tuv[2] = ints[2];
+					intersection = true;
 				}
 			}
 
@@ -80,5 +80,12 @@ const Mesh* Scene::intersect(const Ray& r, int& triangle, Vec3f& tuv) const {
 		}
 	}
 
-	return mesh;
+	if(intersection) {
+		for(auto& m : mshs) {
+			const auto delta = triangle - m.t0;
+			if(0 <= delta && delta < m.ntris)
+				return &m;
+		}
+	}
+	return nullptr;
 }
