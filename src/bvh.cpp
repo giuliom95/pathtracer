@@ -123,8 +123,6 @@ BVHTree::BVHTree(	const std::vector<Vec3f>& vtxs,
 	std::vector<BBox> boxes{};
 	std::vector<Vec3f> centroids{};
 
-	auto i = 0;
-
 	// Compute bboxes and centroids
 	for(const auto& t : vtris) {
 		BBox b{vtxs[t[0]], vtxs[t[1]]};
@@ -132,15 +130,6 @@ BVHTree::BVHTree(	const std::vector<Vec3f>& vtxs,
 		boxes.push_back(b);
 
 		const auto c = 0.5 * (b.pMin + b.pMax);
-
-		std::cout << i << " = ";
-		std::cout << vtxs[t[0]][0] << " " << vtxs[t[0]][1] << " " << vtxs[t[0]][2] << " // ";
-		std::cout << vtxs[t[1]][0] << " " << vtxs[t[1]][1] << " " << vtxs[t[1]][2] << " // ";
-		std::cout << vtxs[t[2]][0] << " " << vtxs[t[2]][1] << " " << vtxs[t[2]][2] << " // BBOX // ";
-		std::cout << b.pMin[0] << " " << b.pMin[1] << " " << b.pMin[2] << " // ";
-		std::cout << b.pMax[0] << " " << b.pMax[1] << " " << b.pMax[2] << " // CENTROID // ";
-		std::cout << c[0] << " " << c[1] << " " << c[2] << std::endl;
-		++i;
 		centroids.push_back(c);
 	}
 
@@ -151,39 +140,4 @@ BVHTree::BVHTree(	const std::vector<Vec3f>& vtxs,
 	const auto min_tris_per_leaf = 10;
 	root = build_tree(	nodes, elems, boxes, centroids, 
 						min_tris_per_leaf, max_recursion_steps);
-
-
-
-
-
-
-
-
-
-
-	std::vector<const BVHNode*> stack;
-	stack.reserve(2*(ntris/4) - 1);
-	stack.push_back(root);
-	while (!stack.empty()) {
-
-		auto node = stack.back();
-		stack.pop_back();
-		
-		const auto tris = node->tris;
-
-		std::cout << node << "   LEFT: " << node->left << ";  RIGHT: " << node->right << ";  TRIS: ";
-		for(auto t : tris) std::cout << t << " ";
-		std::cout << "\t\tBBOX: ";
-		std::cout << node->box.pMin[0] << " " << node->box.pMin[1] << " " << node->box.pMin[2] << " // ";
-		std::cout << node->box.pMax[0] << " " << node->box.pMax[1] << " " << node->box.pMax[2] << "";
-		std::cout << std::endl;
-
-		const auto numtris = tris.size();
-		if (numtris > 0) {
-			
-		} else {
-			stack.push_back(node->left);
-			stack.push_back(node->right);
-		}
-	}
 }

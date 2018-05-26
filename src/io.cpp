@@ -36,10 +36,10 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 			input >> mtl_file;
 			// Build the path to the mtl file using the obj path
 			const auto pos = path.find_last_of('/');
-    		const auto mtl_path = path.substr(0, pos+1) + mtl_file;
-			std::ifstream mtl_input{mtl_path};
+    		const auto mtl_path = path.substr(0, pos+1);
+			std::ifstream mtl_input{mtl_path + mtl_file};
 			if(!mtl_input) {
-				std::cerr << "ERROR: Impossible to open the MTL file \"" << mtl_path << "\" from \"" << path << "\"!\n";
+				std::cerr << "ERROR: Impossible to open the MTL file \"" << mtl_file << "\" from \"" << path << "\"!\n";
 				throw;
 			}
 
