@@ -94,7 +94,7 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 		} else if(head == "g") {
 			// Save mesh data
 			if(!vtris.empty()) {
-				meshes.push_back({lastt0, (int)vtris.size()-lastt0, mats[cur_mat_idx]});
+				meshes.push_back({lastt0, (int)vtris.size()-lastt0, cur_mat_idx});
 				lastt0 = (int)vtris.size();
 			}
 		} else if(head == "usemtl") {
@@ -103,7 +103,7 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 			cur_mat_idx = mats_map.at(mat_name);
 		}
 	}
-	meshes.push_back({lastt0, (int)vtris.size()-lastt0, mats[cur_mat_idx]});
+	meshes.push_back({lastt0, (int)vtris.size()-lastt0, cur_mat_idx});
 
 	// Dummy fixed camera
 	//Camera cam{{0, 2, 4}, {0, -0.3, -1}, {0,1,0}, 1, (float)(w)/h};

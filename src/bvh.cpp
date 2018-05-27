@@ -115,7 +115,7 @@ BVHTree::BVHTree(	const std::vector<Vec3f>& vtxs,
 					const std::vector<Vec3i>& vtris) :
 					nodes(), root(nullptr) {
 
-	const unsigned ntris{vtris.size()};
+	const unsigned ntris{(unsigned)vtris.size()};
 
 	// Enlarge the nodes vector to fit all the nodes
 	nodes.reserve(2*(ntris/4) - 1);

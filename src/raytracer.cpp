@@ -24,12 +24,13 @@ const Vec3f sample_hemisphere(Vec3f n, const RndGen& rg) {
 Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& rg) {
 
 	int tid;	// Triangle index relative to scene.ntris
-	Vec3f tuv;	// Ray param, uv coords of triangle
+	Vec3f tuv;	// Ray param and uv coords of triangle
 
 	const Mesh* mesh = scene.intersect(ray, tid, tuv);
 	if(mesh != nullptr) {
+		auto mat = scene.mats[mesh->mat_idx];
 		if (bounces == 0)
-			return mesh->mat.ke;
+			return mat.ke;
 
 		const auto ntri = scene.ntris[tid];
 		const auto n0 = scene.norms[ntri[0]];
@@ -38,13 +39,11 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 		const auto n = (1-tuv[1]-tuv[2])*n0 + tuv[1]*n1 + tuv[2]*n2;
 		const auto p = ray.o + tuv[0]*ray.d;
 
-		const auto kd = mesh->mat.kd;
-
 		const auto d = sample_hemisphere(n, rg);
 		const auto li = estimate_li({p+0.0001*n, d}, scene, bounces-1, rg);
-		const auto lr = li*kd;
+		const auto lr = li*mat.kd;
 
-		return mesh->mat.ke + lr;
+		return mat.ke + lr;
 	} else {
 		return {};
 	}
@@ -96,9 +95,9 @@ void debug_rt(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec4
 
 			scn.intersect(r, tid, tuv);
 			if(tid >= 0) {
-				img[buf_idx][0] += tid;
-				img[buf_idx][1] += tid;
-				img[buf_idx][2] += tid;
+				img[buf_idx][0] += tid + 1;
+				img[buf_idx][1] += tid + 1;
+				img[buf_idx][2] += tid + 1;
 			}
 		}
 	}
@@ -115,6 +114,7 @@ int main(int argc, char** argv) {
 	std::vector<Vec4h> img{(size_t)w*h, {0, 0, 0, 0}};
 
 	raytrace_mt(scene, w, h, s, img);
+	//debug_rt(scene, w, h, s, img);
 
 	io::saveEXR(out, w, h, img);
 }
