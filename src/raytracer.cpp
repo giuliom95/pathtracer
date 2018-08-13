@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include <thread>
+#include <algorithm>
 
 #define MAX_BOUNCES 4
 
@@ -18,6 +19,16 @@ const Vec3f sample_hemisphere(Vec3f n, const RndGen& rg) {
 
 	const auto mat = refFromVec(n);
 	return transformVector(mat, {z, r * std::cos(phi), r * std::sin(phi)});
+}
+
+
+const Vec3f lambert_brdf_cos(const Vec3f& kd, const Vec3f& i, const Vec3f& n) {
+	return INV_PI*dot(n, i)*kd;
+}
+
+
+const float inv_pdf(const Vec3f& i, const Vec3f& n) {
+	return PI / dot(n, i);
 }
 
 
@@ -39,11 +50,12 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 		const auto n = (1-tuv[1]-tuv[2])*n0 + tuv[1]*n1 + tuv[2]*n2;
 		const auto p = ray.o + tuv[0]*ray.d;
 
-		const auto d = sample_hemisphere(n, rg);
-		const auto li = estimate_li({p+0.0001*n, d}, scene, bounces-1, rg);
-		const auto lr = li*mat.kd;
+		const auto i = sample_hemisphere(n, rg);
+		const auto li = estimate_li({p+0.0001*n, i}, scene, bounces-1, rg);
+		const auto lr = inv_pdf(i, n)*li*lambert_brdf_cos(mat.kd, i, n);
+		const auto le = mat.ke;
 
-		return mat.ke + lr;
+		return le + lr;
 	} else {
 		return {};
 	}

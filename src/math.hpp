@@ -10,7 +10,8 @@
 #include <random>
 #include <functional>
 
-#define PI 3.14159f
+#define PI 3.141592654f
+#define INV_PI 0.318309886f
 
 inline const float max(const float a, const float b) {return a > b ? a : b;}
 inline const float min(const float a, const float b) {return a < b ? a : b;}
