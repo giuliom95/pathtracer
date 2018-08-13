@@ -14,6 +14,8 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 		throw;
 	}
 
+	Vec3f cam_eye, cam_view, cam_up;
+
 	std::vector<Vec3f> vtxs;
 	std::vector<Vec3f> norms;
 
@@ -91,7 +93,7 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 			}
 			vtris.push_back(vtri);
 			ntris.push_back(ntri);
-		} else if(head == "g") {
+		} else if(head == "o") {
 			// Save mesh data
 			if(!vtris.empty()) {
 				meshes.push_back({lastt0, (int)vtris.size()-lastt0, cur_mat_idx});
@@ -101,13 +103,15 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 			std::string mat_name;
 			input >> mat_name;
 			cur_mat_idx = mats_map.at(mat_name);
+		} else if(head == "c") {
+			input >> cam_eye[0]		>> cam_eye[1]	>> cam_eye[2];
+			input >> cam_view[0] 	>> cam_view[1]	>> cam_view[2];
+			input >> cam_up[0]		>> cam_up[1]	>> cam_up[2];
 		}
 	}
 	meshes.push_back({lastt0, (int)vtris.size()-lastt0, cur_mat_idx});
 
-	// Dummy fixed camera
-	//Camera cam{{0, 2, 4}, {0, -0.3, -1}, {0,1,0}, 1, (float)(w)/h};
-	Camera cam{{0, 1, 4}, {0,0,-1}, {0,1,0}, 1, (float)(w)/h};
+	Camera cam{cam_eye, cam_view, cam_up, 1, (float)(w)/h};
 
 	return {vtxs, norms, vtris, ntris, meshes, mats, cam};
 }
