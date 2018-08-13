@@ -26,6 +26,8 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 	std::vector<Material> mats;
 	std::map<std::string, int> mats_map;
 
+	std::vector<int> lights;
+
 	mats.push_back({});
 
 	auto lastt0 = 0;
@@ -98,6 +100,10 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 			if(!vtris.empty()) {
 				meshes.push_back({lastt0, (int)vtris.size()-lastt0, cur_mat_idx});
 				lastt0 = (int)vtris.size();
+
+				const auto ke = mats[cur_mat_idx].ke;
+				if(dot(ke, ke) > 0)
+					lights.push_back(meshes.size() - 1);
 			}
 		} else if(head == "usemtl") {
 			std::string mat_name;
@@ -109,11 +115,15 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 			input >> cam_up[0]		>> cam_up[1]	>> cam_up[2];
 		}
 	}
+
 	meshes.push_back({lastt0, (int)vtris.size()-lastt0, cur_mat_idx});
+	const auto ke = mats[cur_mat_idx].ke;
+	if(dot(ke, ke) > 0)
+		lights.push_back(meshes.size() - 1);
 
 	Camera cam{cam_eye, cam_view, cam_up, 1, (float)(w)/h};
 
-	return {vtxs, norms, vtris, ntris, meshes, mats, cam};
+	return {vtxs, norms, vtris, ntris, meshes, mats, lights, cam};
 }
 
 void io::saveEXR(	std::string path, 

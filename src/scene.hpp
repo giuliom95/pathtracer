@@ -35,6 +35,7 @@ public:
 
 	const std::vector<Mesh> mshs;
 	const std::vector<Material> mats;
+	const std::vector<int> lights;
 
 	const Camera cam;
 
@@ -48,6 +49,7 @@ public:
 			const std::vector<Vec3i>& ntris,
 			const std::vector<Mesh>& meshes,
 			const std::vector<Material>& materials,
+			const std::vector<int>& lights,
 			const Camera& camera) :
 			vtxs(vtxs),
 			norms(norms),
@@ -55,6 +57,7 @@ public:
 			ntris(ntris),
 			mshs(meshes),
 			mats(materials),
+			lights(lights),
 			cam(camera),
 			bvh{vtxs, vtris} {}
 
