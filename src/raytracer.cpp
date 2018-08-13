@@ -27,6 +27,16 @@ const Vec3f lambert_brdf_cos(const Vec3f& kd, const Vec3f& i, const Vec3f& n) {
 }
 
 
+const Vec3f phong_brdf_cos(const Vec3f& kd, const Vec3f ks, const float ke, const Vec3f& i, const Vec3f& o, const Vec3f& n) {
+	const auto mat = transpose(refFromVec(n));
+	const auto loc_i = transformVector(mat, i);
+	const auto loc_o = transformVector(mat, o);
+	const Vec3f loc_neg_o{-loc_o[0], -loc_o[1], loc_o[2]};
+	const auto dot_res = dot(loc_i, loc_neg_o);
+	return kd + std::pow(std::max(0.0f, dot_res), ke)*ks;
+}
+
+
 const float inv_pdf(const Vec3f& i, const Vec3f& n) {
 	return PI / dot(n, i);
 }
@@ -52,7 +62,7 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 
 		const auto i = sample_hemisphere(n, rg);
 		const auto li = estimate_li({p+0.0001*n, i}, scene, bounces-1, rg);
-		const auto lr = inv_pdf(i, n)*li*lambert_brdf_cos(mat.kd, i, n);
+		const auto lr = inv_pdf(i, n)*li*phong_brdf_cos(mat.kd, {1.0f, 0.0f, 0.0f}, 4.2f, i, -1*ray.d, n);
 		const auto le = mat.ke;
 
 		return le + lr;
