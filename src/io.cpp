@@ -122,6 +122,7 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 	for(const auto& m : meshes) {
 		const auto ke = mats[m.mat_idx].ke;
 		if(dot(ke, ke) > 0) {
+			auto area = 0.0;
 			for(auto ti = m.t0; ti < m.t0 + m.ntris; ++ti) {
 				light_tris.push_back(ti);
 
@@ -131,7 +132,8 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 				const auto v2 = vtxs[tri[2]] - p;
 				const auto tri_area = 0.5 * dot(v1, v2);
 				
-				light_tris_areas.push_back(tri_area);
+				area += tri_area;
+				light_tris_areas.push_back(area);
 			}
 		}
 	}

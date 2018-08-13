@@ -5,6 +5,7 @@
 #include <cmath>
 
 #include <thread>
+#include <algorithm>
 
 #define MAX_BOUNCES 4
 
@@ -18,6 +19,24 @@ const Vec3f sample_hemisphere(Vec3f n, const RndGen& rg) {
 
 	const auto mat = refFromVec(n);
 	return transformVector(mat, {z, r * std::cos(phi), r * std::sin(phi)});
+}
+
+
+const Vec3f sample_lights(const Scene& scn, const RndGen& rg) {
+	const auto& cdf = scn.lgt_tris_areas;
+	const auto r0 = rg.next_float() * cdf.back();
+	const int tri_idx = (int)(std::upper_bound(cdf.begin(), cdf.end(), r0) - cdf.begin());
+	
+	const auto vtri = scn.vtris[tri_idx];
+	const auto v0 = scn.vtxs[vtri[0]];
+	const auto v1 = scn.vtxs[vtri[1]];
+	const auto v2 = scn.vtxs[vtri[2]];
+
+	const auto r1_sqrt = std::sqrt(rg.next_float());
+	const auto r2 = rg.next_float();
+	const auto r2_sqrt = std::sqrt(r2);
+
+	return r1_sqrt*(1 - r2)*v0 + (1 - r2_sqrt)*v1 + r1_sqrt*r2*v2;
 }
 
 
