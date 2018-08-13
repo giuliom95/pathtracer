@@ -26,8 +26,6 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 	std::vector<Material> mats;
 	std::map<std::string, int> mats_map;
 
-	std::vector<int> lights;
-
 	mats.push_back({});
 
 	auto lastt0 = 0;
@@ -98,12 +96,9 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 		} else if(head == "o") {
 			// Save mesh data
 			if(!vtris.empty()) {
-				meshes.push_back({lastt0, (int)vtris.size()-lastt0, cur_mat_idx});
-				lastt0 = (int)vtris.size();
-
-				const auto ke = mats[cur_mat_idx].ke;
-				if(dot(ke, ke) > 0)
-					lights.push_back(meshes.size() - 1);
+				const int tri_num = vtris.size();
+				meshes.push_back({lastt0, tri_num-lastt0, cur_mat_idx});
+				lastt0 = tri_num;
 			}
 		} else if(head == "usemtl") {
 			std::string mat_name;
@@ -117,13 +112,31 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 	}
 
 	meshes.push_back({lastt0, (int)vtris.size()-lastt0, cur_mat_idx});
-	const auto ke = mats[cur_mat_idx].ke;
-	if(dot(ke, ke) > 0)
-		lights.push_back(meshes.size() - 1);
 
 	Camera cam{cam_eye, cam_view, cam_up, 1, (float)(w)/h};
 
-	return {vtxs, norms, vtris, ntris, meshes, mats, lights, cam};
+
+	std::vector<int> light_tris;
+	std::vector<float> light_tris_areas;
+	
+	for(const auto& m : meshes) {
+		const auto ke = mats[m.mat_idx].ke;
+		if(dot(ke, ke) > 0) {
+			for(auto ti = m.t0; ti < m.t0 + m.ntris; ++ti) {
+				light_tris.push_back(ti);
+
+				const auto tri = vtris[ti];
+				const auto p = vtxs[tri[0]];
+				const auto v1 = vtxs[tri[1]] - p;
+				const auto v2 = vtxs[tri[2]] - p;
+				const auto tri_area = 0.5 * dot(v1, v2);
+				
+				light_tris_areas.push_back(tri_area);
+			}
+		}
+	}
+
+	return {vtxs, norms, vtris, ntris, meshes, mats, light_tris, light_tris_areas, cam};
 }
 
 void io::saveEXR(	std::string path, 

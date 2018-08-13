@@ -27,15 +27,17 @@ private:
 
 class Scene {
 public:
-	const std::vector<Vec3f> vtxs;		// Vertices list
-	const std::vector<Vec3f> norms;		// Normals list
+	const std::vector<Vec3f> 	vtxs;		// Vertices list
+	const std::vector<Vec3f> 	norms;		// Normals list
 
-	const std::vector<Vec3i> vtris;		// Triangle->"vertex indexes" mapping
-	const std::vector<Vec3i> ntris;		// Triangle->"normal indexes" mapping
+	const std::vector<Vec3i> 	vtris;		// Triangle->"vertex indexes" mapping
+	const std::vector<Vec3i> 	ntris;		// Triangle->"normal indexes" mapping
 
-	const std::vector<Mesh> mshs;
-	const std::vector<Material> mats;
-	const std::vector<int> lights;
+	const std::vector<Mesh>		mshs;
+	const std::vector<Material>	mats;
+
+	const std::vector<int>		lgt_tris;		// Indexes of the light emitting triangles
+	const std::vector<float>	lgt_tris_areas;	// Areas of the emitting triangles
 
 	const Camera cam;
 
@@ -49,7 +51,8 @@ public:
 			const std::vector<Vec3i>& ntris,
 			const std::vector<Mesh>& meshes,
 			const std::vector<Material>& materials,
-			const std::vector<int>& lights,
+			const std::vector<int>& light_tris,
+			const std::vector<float>& light_tris_areas,
 			const Camera& camera) :
 			vtxs(vtxs),
 			norms(norms),
@@ -57,7 +60,8 @@ public:
 			ntris(ntris),
 			mshs(meshes),
 			mats(materials),
-			lights(lights),
+			lgt_tris(light_tris),
+			lgt_tris_areas(light_tris_areas),
 			cam(camera),
 			bvh{vtxs, vtris} {}
 
