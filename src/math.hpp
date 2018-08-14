@@ -36,10 +36,13 @@ inline const Vec3f normalize	(const Vec3f& v) { return (1 / length(v))*v; }
 
 inline const void operator+=	(Vec4h& a, const Vec4h& b) { a[0]+=b[0]; a[1]+=b[1]; a[2]+=b[2]; a[3]+=b[3]; }
 
-inline std::ostream& operator<<(std::ostream& os, Vec3f& v) {
+inline std::ostream& operator<<(std::ostream& os, const Vec3f& v) {
 	return os << "[" << v[0] << ", " << v[1] << ", " << v[2] << "]";
 }
 
+inline std::ostream& operator<<(std::ostream& os, Vec3f& v) {
+	return os << "[" << v[0] << ", " << v[1] << ", " << v[2] << "]";
+}
 
 //////// MATRIX ////////
 
