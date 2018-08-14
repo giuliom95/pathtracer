@@ -10,7 +10,8 @@
 #include <random>
 #include <functional>
 
-#define PI 3.14159f
+#define PI 3.141592654f
+#define INV_PI 0.318309886f
 
 inline const float max(const float a, const float b) {return a > b ? a : b;}
 inline const float min(const float a, const float b) {return a < b ? a : b;}
@@ -60,6 +61,7 @@ public:
 					x[2], y[2], z[2], w[2],
 						0,    0,    0,    1} {}
 
+	const 	float& operator[](int idx) 		const	{ return data[idx]; }
 			float& operator()(int i, int j)			{ return data[i*4+j]; }
 	const 	float& operator()(int i, int j) const	{ return data[i*4+j]; }
 };
@@ -76,6 +78,13 @@ inline const Mat4 refFromVec (const Vec3f& v) {
 	
 	const auto v3 = cross(v, v2);
 	return {v, v2, v3, {}};
+}
+
+inline const Mat4 transpose (const Mat4& m) {
+	return {	m[0], m[4],  m[8], m[12],
+				m[1], m[5],  m[9], m[13],
+				m[2], m[6], m[10], m[14],
+				m[3], m[7], m[11], m[15]};
 }
 
 //////// RAY ////////
