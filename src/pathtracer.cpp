@@ -1,14 +1,4 @@
-#include "scene.hpp"
-#include "io.hpp"
-
-#include <queue>
-#include <cmath>
-
-#include <thread>
-#include <algorithm>
-
-#define MAX_BOUNCES 4
-
+#include "pathtracer.hpp"
 
 const Vec3f sample_hemisphere(Vec3f n, const RndGen& rg) {
 	const auto r0 = rg.next_float();
@@ -56,12 +46,12 @@ const Vec3f lambert_brdf_cos(const Vec3f& kd, const Vec3f& i, const Vec3f& n) {
 
 
 const Vec3f phong_brdf_cos(const Vec3f& kd, const Vec3f ks, const float ke, const Vec3f& i, const Vec3f& o, const Vec3f& n) {
-	const auto mat = transpose(refFromVec(n));
+	const auto mat = refFromVec(n);
 	const auto loc_i = transformVector(mat, i);
 	const auto loc_o = transformVector(mat, o);
 	const Vec3f loc_neg_o{-loc_o[0], -loc_o[1], loc_o[2]};
 	const auto dot_res = dot(loc_i, loc_neg_o);
-	return kd + std::pow(std::max(0.0f, dot_res), ke)*ks;
+	return std::pow(std::max(0.0f, dot_res), ke)*ks;// + INV_PI*kd;
 }
 
 
@@ -73,7 +63,7 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 	const Mesh* mesh = scene.intersect(ray, tid, tuv);
 	if(mesh != nullptr) {
 		const auto mat = scene.mats[mesh->mat_idx];
-		if (bounces == 0)
+		if (bounces == 0 || dot(mat.ke, mat.ke) != 0)
 			return mat.ke;
 
 		const auto ntri = scene.ntris[tid];
@@ -85,6 +75,7 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 
 		const auto le = mat.ke;
 
+		// Direct illumination
 		Vec3f lgt_p, lgt_n;
 		sample_lights(scene, rg, lgt_p, lgt_n);
 		const auto vec_dir = lgt_p - p;
@@ -93,7 +84,8 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 		const Vec3f li_dir = lgt_mesh != nullptr ? scene.mats[lgt_mesh->mat_idx].ke : Vec3f();
 		const auto inv_dir_pdf = scene.light_pdf_area_coeff * std::abs(dot(lgt_n, -1*i_dir)) / dot(vec_dir, vec_dir);
 		const auto lr_dir = inv_dir_pdf*li_dir*lambert_brdf_cos(mat.kd, i_dir, n);
-
+		
+		// Indirect illumination
 		const auto i_ind = sample_hemisphere(n, rg);
 		const auto li_ind = estimate_li({p+0.0001*n, i_ind}, scene, bounces-1, rg);
 		const auto inv_ind_pdf = PI / dot(n, i_ind);
@@ -106,7 +98,7 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 }
 
 
-void raytrace_mt(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec4h>& img) {
+void pathtrace(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec4h>& img) {
 
 	RndGen rg{};
 
@@ -135,47 +127,3 @@ void raytrace_mt(const Scene& scn, int w, unsigned h, int samples, std::vector<V
 	}
 	for (auto& thread : threads) thread.join();
 }
-
-
-void debug_rt(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec4h>& img) {
-	RndGen rg{};
-	for (unsigned j = 0; j < h; ++j) {
-		for (auto i = 0; i < w; ++i) {
-			const auto buf_idx = i+j*w;
-			img[buf_idx] = {0, 0, 0, 1};
-			const auto uv = scn.cam.sample_camera(i, j, h, rg);
-			const auto r = scn.cam.generateRay(uv);
-
-			int tid;	// Triangle index relative to scene.ntris
-			Vec3f tuv;	// Ray param, uv coords of triangle
-
-			scn.intersect(r, tid, tuv);
-			const auto p = r.o + tuv[0]*r.d;
-			if(tid >= 0) {
-				/*img[buf_idx][0] += tid + 1;
-				img[buf_idx][1] += tid + 1;
-				img[buf_idx][2] += tid + 1;*/
-				img[buf_idx][0] += p[0];
-				img[buf_idx][1] += p[1];
-				img[buf_idx][2] += p[2];
-			}
-		}
-	}
-}
-
-int main(int argc, char** argv) {
-
-	int w, h, s;
-	std::string in, out;
-	if(!io::parseArgs(argc, argv, w, h, s, in, out)) return 1;
-
-	auto scene = io::loadOBJ(in, w, h);
-
-	std::vector<Vec4h> img{(size_t)w*h, {0, 0, 0, 0}};
-
-	raytrace_mt(scene, w, h, s, img);
-	//debug_rt(scene, w, h, s, img);
-
-	io::saveEXR(out, w, h, img);
-}
-
