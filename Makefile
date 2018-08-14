@@ -1,7 +1,7 @@
 # options
 CXX=g++
-CXXFLAGS=-std=c++11 -O3 -Wall
-TARGET=bin/pathtracer
+CXXFLAGS=-std=c++11 -O3 -Wall -Wno-deprecated
+TARGET=bin/renderer
 
 INCLUDES=-I/usr/include/OpenEXR
 
@@ -26,5 +26,5 @@ bin/%.o: src/%.cpp $(HDRS)
 clean:
 	rm -f $(TARGET) $(OBJS)
 
-all: bin/pathtracer
+all: $(TARGET)
 	@echo "All done!"
