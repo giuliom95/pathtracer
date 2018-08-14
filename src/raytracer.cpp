@@ -22,21 +22,31 @@ const Vec3f sample_hemisphere(Vec3f n, const RndGen& rg) {
 }
 
 
-const Vec3f sample_lights(const Scene& scn, const RndGen& rg) {
+const void sample_lights(const Scene& scn, const RndGen& rg, Vec3f& p, Vec3f& n) {
 	const auto& cdf = scn.lgt_tris_areas;
 	const auto r0 = rg.next_float() * cdf.back();
-	const int tri_idx = (int)(std::upper_bound(cdf.begin(), cdf.end(), r0) - cdf.begin());
+	const auto lgt_tri_idx = (int)(std::upper_bound(cdf.begin(), cdf.end(), r0) - cdf.begin());
 	
+	const auto tri_idx = scn.lgt_tris[lgt_tri_idx];
+
 	const auto vtri = scn.vtris[tri_idx];
 	const auto v0 = scn.vtxs[vtri[0]];
 	const auto v1 = scn.vtxs[vtri[1]];
 	const auto v2 = scn.vtxs[vtri[2]];
 
+	const auto ntri = scn.ntris[tri_idx];
+	const auto n0 = scn.norms[ntri[0]];
+	const auto n1 = scn.norms[ntri[1]];
+	const auto n2 = scn.norms[ntri[2]];
+
 	const auto r1_sqrt = std::sqrt(rg.next_float());
 	const auto r2 = rg.next_float();
-	const auto r2_sqrt = std::sqrt(r2);
+	const auto a = r1_sqrt*(1 - r2);
+	const auto b = (1 - r1_sqrt);
+	const auto c = r1_sqrt*r2;
 
-	return r1_sqrt*(1 - r2)*v0 + (1 - r2_sqrt)*v1 + r1_sqrt*r2*v2;
+	p = a*v0 + b*v1 + c*v2;
+	n = a*n0 + b*n1 + c*n2;
 }
 
 
@@ -55,11 +65,6 @@ const Vec3f phong_brdf_cos(const Vec3f& kd, const Vec3f ks, const float ke, cons
 }
 
 
-const float inv_pdf(const Vec3f& i, const Vec3f& n) {
-	return PI / dot(n, i);
-}
-
-
 Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& rg) {
 
 	int tid;	// Triangle index relative to scene.ntris
@@ -67,7 +72,7 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 
 	const Mesh* mesh = scene.intersect(ray, tid, tuv);
 	if(mesh != nullptr) {
-		auto mat = scene.mats[mesh->mat_idx];
+		const auto mat = scene.mats[mesh->mat_idx];
 		if (bounces == 0)
 			return mat.ke;
 
@@ -78,12 +83,23 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 		const auto n = (1-tuv[1]-tuv[2])*n0 + tuv[1]*n1 + tuv[2]*n2;
 		const auto p = ray.o + tuv[0]*ray.d;
 
-		const auto i = sample_hemisphere(n, rg);
-		const auto li = estimate_li({p+0.0001*n, i}, scene, bounces-1, rg);
-		const auto lr = inv_pdf(i, n)*li*phong_brdf_cos(mat.kd, {1.0f, 0.0f, 0.0f}, 4.2f, i, -1*ray.d, n);
 		const auto le = mat.ke;
 
-		return le + lr;
+		Vec3f lgt_p, lgt_n;
+		sample_lights(scene, rg, lgt_p, lgt_n);
+		const auto vec_dir = lgt_p - p;
+		const auto i_dir = normalize(vec_dir);
+		const Mesh* lgt_mesh = scene.intersect({p+0.0001*n, i_dir}, tid, tuv);
+		const Vec3f li_dir = lgt_mesh != nullptr ? scene.mats[lgt_mesh->mat_idx].ke : Vec3f();
+		const auto inv_dir_pdf = scene.light_pdf_area_coeff * std::abs(dot(lgt_n, -1*i_dir)) / dot(vec_dir, vec_dir);
+		const auto lr_dir = inv_dir_pdf*li_dir*lambert_brdf_cos(mat.kd, i_dir, n);
+
+		const auto i_ind = sample_hemisphere(n, rg);
+		const auto li_ind = estimate_li({p+0.0001*n, i_ind}, scene, bounces-1, rg);
+		const auto inv_ind_pdf = PI / dot(n, i_ind);
+		const auto lr_ind = inv_ind_pdf*li_ind*lambert_brdf_cos(mat.kd, i_ind, n);
+
+		return le + lr_ind + lr_dir;
 	} else {
 		return {};
 	}
@@ -134,10 +150,14 @@ void debug_rt(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec4
 			Vec3f tuv;	// Ray param, uv coords of triangle
 
 			scn.intersect(r, tid, tuv);
+			const auto p = r.o + tuv[0]*r.d;
 			if(tid >= 0) {
-				img[buf_idx][0] += tid + 1;
+				/*img[buf_idx][0] += tid + 1;
 				img[buf_idx][1] += tid + 1;
-				img[buf_idx][2] += tid + 1;
+				img[buf_idx][2] += tid + 1;*/
+				img[buf_idx][0] += p[0];
+				img[buf_idx][1] += p[1];
+				img[buf_idx][2] += p[2];
 			}
 		}
 	}

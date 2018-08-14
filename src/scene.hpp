@@ -43,6 +43,8 @@ public:
 
 	const BVHTree bvh;
 
+	const float light_pdf_area_coeff;
+
 	const Mesh* intersect(const Ray&, int&, Vec3f&) const;
 
 	Scene(	const std::vector<Vec3f>& vtxs,
@@ -63,7 +65,8 @@ public:
 			lgt_tris(light_tris),
 			lgt_tris_areas(light_tris_areas),
 			cam(camera),
-			bvh{vtxs, vtris} {}
+			bvh{vtxs, vtris}, 
+			light_pdf_area_coeff(light_tris_areas.size() * light_tris_areas.back()) {}
 
 };
 
