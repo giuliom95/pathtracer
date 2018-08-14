@@ -136,6 +136,16 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 		}
 	}
 
+	//Print statistics
+	std::cout << "Scene loaded!" << std::endl;
+	std::cout << "Vertices: " << vtxs.size() << std::endl;
+	std::cout << "Normals: " << norms.size() << std::endl;
+	std::cout << "Triangles: " << vtris.size() << std::endl;
+	std::cout << "Meshes: " << meshes.size() << std::endl;
+	std::cout << "Materials: " << mats.size() << std::endl;
+	std::cout << "Emitting triangles: " << light_tris.size() << std::endl;
+	std::cout << "Camera: " << cam_eye << ", " << cam_view << ", " << cam_up << std::endl;
+
 	return {vtxs, norms, vtris, ntris, meshes, mats, light_tris, light_tris_areas, cam};
 }
 
