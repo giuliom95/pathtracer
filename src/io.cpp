@@ -46,26 +46,33 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 			}
 
 			std::string mat_name{""};
-			Vec3f kd, ke;
+			Vec3f kd, ke, ks;
+			float exp;
 			while(!mtl_input.eof()) {
 				std::string mtl_head;
 				mtl_input >> mtl_head;
 				if(mtl_head == "newmtl") {
 					if(mat_name != "") {
-						mats.push_back({kd, ke});
+						mats.push_back({kd, ke, ks, exp});
 						mats_map.insert(std::make_pair(mat_name, mats.size()-1));
 					}
 					mtl_input >> mat_name;
 					kd = {};
 					ke = {};
+					ks = {};
+					exp = 1.0f;
 				} else if(mtl_head == "Kd") {
 					mtl_input >> kd[0] >> kd[1] >> kd[2];
 				} else if(mtl_head == "Ke") {
 					mtl_input >> ke[0] >> ke[1] >> ke[2];
+				} else if(mtl_head == "Ks") {
+					mtl_input >> ks[0] >> ks[1] >> ks[2];
+				} else if(mtl_head == "e") {
+					mtl_input >> exp;
 				}
 			}
 
-			mats.push_back({kd, ke});
+			mats.push_back({kd, ke, ks, exp});
 			mats_map.insert(std::make_pair(mat_name, mats.size()-1));
 
 		} else if(head == "v") {

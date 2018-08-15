@@ -45,13 +45,13 @@ const Vec3f lambert_brdf_cos(const Vec3f& kd, const Vec3f& i, const Vec3f& n) {
 }
 
 
-const Vec3f phong_brdf_cos(const Vec3f& kd, const Vec3f ks, const float ke, const Vec3f& i, const Vec3f& o, const Vec3f& n) {
+const Vec3f phong_brdf_cos(const Vec3f& kd, const Vec3f ks, const float exp, const Vec3f& i, const Vec3f& o, const Vec3f& n) {
 	const auto mat = refFromVec(n);
 	const auto loc_i = transformVector(mat, i);
 	const auto loc_o = transformVector(mat, o);
 	const Vec3f loc_neg_o{-loc_o[0], -loc_o[1], loc_o[2]};
 	const auto dot_res = dot(loc_i, loc_o);
-	return INV_PI * (std::pow(std::max(0.0f, dot_res), ke)*ks + kd);
+	return INV_PI * (std::pow(std::max(0.0f, dot_res), exp)*ks + kd);
 }
 
 
@@ -83,13 +83,13 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 		const Mesh* lgt_mesh = scene.intersect({p+0.0001*n, i_dir}, tid, tuv);
 		const Vec3f li_dir = lgt_mesh != nullptr ? scene.mats[lgt_mesh->mat_idx].ke : Vec3f();
 		const auto inv_dir_pdf = scene.light_pdf_area_coeff * std::abs(dot(lgt_n, -1*i_dir)) / dot(vec_dir, vec_dir);
-		const auto lr_dir = inv_dir_pdf*li_dir*phong_brdf_cos(mat.kd, {1,1,1}, 1, i_dir, ray.d, n);
+		const auto lr_dir = inv_dir_pdf*li_dir*phong_brdf_cos(mat.kd, mat.ks, mat.exp, i_dir, ray.d, n);
 		
 		// Indirect illumination
 		const auto i_ind = sample_hemisphere(n, rg);
 		const auto li_ind = estimate_li({p+0.0001*n, i_ind}, scene, bounces-1, rg);
 		const auto inv_ind_pdf = PI / dot(n, i_ind);
-		const auto lr_ind = inv_ind_pdf*li_ind*phong_brdf_cos(mat.kd, {1,1,1}, 1, i_ind, ray.d, n);
+		const auto lr_ind = inv_ind_pdf*li_ind*phong_brdf_cos(mat.kd, mat.ks, mat.exp, i_ind, ray.d, n);
 
 		return le + lr_ind + lr_dir;
 	} else {
