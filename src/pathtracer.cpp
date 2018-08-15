@@ -100,12 +100,11 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 
 void pathtrace(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec4h>& img) {
 
-	RndGen rg{};
-
 	const auto nthreads = std::thread::hardware_concurrency();
 	auto threads = std::vector<std::thread>();
 	for (unsigned tid = 0; tid < nthreads; tid++) {
 		threads.push_back(std::thread([=, &scn, &img]() {
+			RndGen rg{};
 			for (unsigned j = tid; j < h; j += nthreads) {
 				for (auto i = 0; i < w; i++) {
 					const auto buf_idx = i+j*w;
