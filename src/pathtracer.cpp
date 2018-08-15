@@ -97,6 +97,48 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 	}
 }
 
+Vec3f estimate_li_prod(const Ray ray, const Scene& scene, int bounces, const RndGen& rg) {
+	int tid;	// Triangle index relative to scene.ntris
+	Vec3f tuv;	// Ray param and uv coords of triangle
+
+	const auto mesh = scene.intersect(ray, tid, tuv);
+	if(mesh == nullptr) return {0,0,0};
+
+	auto old_mat_idx = mesh->mat_idx;
+
+	Vec3f w{1, 1, 1};
+	auto li = scene.mats[old_mat_idx].ke;
+	auto old_ray = ray;
+
+	for(auto b = 0; b < bounces; ++b) {
+
+		const auto old_mat = scene.mats[old_mat_idx];
+
+		const auto ntri = scene.ntris[tid];
+		const auto n0 = scene.norms[ntri[0]];
+		const auto n1 = scene.norms[ntri[1]];
+		const auto n2 = scene.norms[ntri[2]];	
+		const auto n = (1-tuv[1]-tuv[2])*n0 + tuv[1]*n1 + tuv[2]*n2;
+		const auto p = old_ray.o + tuv[0]*old_ray.d;
+
+		const auto i_ind = sample_hemisphere(n, rg);
+		const Ray new_ray{p+0.0001*n, i_ind};
+
+		const auto new_mesh = scene.intersect(new_ray, tid, tuv);
+		if(new_mesh == nullptr) return li; ///!!!!
+		const auto new_mat = scene.mats[new_mesh->mat_idx];
+
+		const auto inv_ind_pdf = PI / dot(n, i_ind);
+		w = inv_ind_pdf * w * phong_brdf_cos(old_mat.kd, old_mat.ks, old_mat.exp, i_ind, old_ray.d, n);
+		li = li + w * new_mat.ke;
+
+		old_ray = new_ray;
+		old_mat_idx = new_mesh->mat_idx;
+		
+	}
+
+	return li;
+}
 
 void pathtrace(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec4h>& img) {
 
@@ -112,7 +154,7 @@ void pathtrace(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec
 					for (auto s = 0; s < samples; ++s) {
 						const auto uv = scn.cam.sample_camera(i, j, h, rg);
 						const auto r = scn.cam.generateRay(uv);
-						const auto pix = estimate_li(r, scn, MAX_BOUNCES, rg); 
+						const auto pix = estimate_li_prod(r, scn, MAX_BOUNCES, rg); 
 						img[buf_idx][0] += pix[0];
 						img[buf_idx][1] += pix[1];
 						img[buf_idx][2] += pix[2];
