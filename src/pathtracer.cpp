@@ -97,7 +97,7 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 	}
 }
 
-Vec3f estimate_li_prod(const Ray ray, const Scene& scene, int bounces, const RndGen& rg) {
+Vec3f estimate_li_prod_only_indirect(const Ray ray, const Scene& scene, int bounces, const RndGen& rg) {
 	int tid;	// Triangle index relative to scene.ntris
 	Vec3f tuv;	// Ray param and uv coords of triangle
 
@@ -131,6 +131,55 @@ Vec3f estimate_li_prod(const Ray ray, const Scene& scene, int bounces, const Rnd
 		const auto inv_ind_pdf = PI / dot(n, i_ind);
 		w = inv_ind_pdf * w * phong_brdf_cos(old_mat.kd, old_mat.ks, old_mat.exp, i_ind, old_ray.d, n);
 		li = li + w * new_mat.ke;
+
+		old_ray = new_ray;
+		old_mat_idx = new_mesh->mat_idx;
+		
+	}
+
+	return li;
+}
+
+Vec3f estimate_li_prod(const Ray ray, const Scene& scene, int bounces, const RndGen& rg) {
+	int tid;	// Triangle index relative to scene.ntris
+	Vec3f tuv;	// Ray param and uv coords of triangle
+
+	const auto mesh = scene.intersect(ray, tid, tuv);
+	if(mesh == nullptr) return {0,0,0};
+
+	auto old_mat_idx = mesh->mat_idx;
+
+	Vec3f w{1, 1, 1};
+	auto li = scene.mats[old_mat_idx].ke;
+	auto old_ray = ray;
+
+	for(auto b = 0; b < bounces; ++b) {
+
+		const auto old_mat = scene.mats[old_mat_idx];
+
+		const auto ntri = scene.ntris[tid];
+		const auto n0 = scene.norms[ntri[0]];
+		const auto n1 = scene.norms[ntri[1]];
+		const auto n2 = scene.norms[ntri[2]];	
+		const auto n = (1-tuv[1]-tuv[2])*n0 + tuv[1]*n1 + tuv[2]*n2;
+		const auto p = old_ray.o + tuv[0]*old_ray.d;
+
+		Vec3f lgt_p, lgt_n;
+		sample_lights(scene, rg, lgt_p, lgt_n);
+		const auto vec_dir = lgt_p - p;
+		const auto i_dir = normalize(vec_dir);
+		const Mesh* lgt_mesh = scene.intersect({p+0.0001*n, i_dir}, tid, tuv);
+		const Vec3f li_dir = lgt_mesh != nullptr ? scene.mats[lgt_mesh->mat_idx].ke : Vec3f();
+		const auto inv_dir_pdf = scene.light_pdf_area_coeff * std::abs(dot(lgt_n, -1*i_dir)) / dot(vec_dir, vec_dir);
+		const auto lr_dir = inv_dir_pdf*li_dir*phong_brdf_cos(old_mat.kd, old_mat.ks, old_mat.exp, i_dir, ray.d, n);
+		li = li + w * lr_dir;
+
+		const auto i_ind = sample_hemisphere(n, rg);
+		const Ray new_ray{p+0.0001*n, i_ind};
+		const auto new_mesh = scene.intersect(new_ray, tid, tuv);
+		if(new_mesh == nullptr) return li;
+		const auto inv_ind_pdf = PI / dot(n, i_ind);
+		w = inv_ind_pdf * w * phong_brdf_cos(old_mat.kd, old_mat.ks, old_mat.exp, i_ind, old_ray.d, n);
 
 		old_ray = new_ray;
 		old_mat_idx = new_mesh->mat_idx;
