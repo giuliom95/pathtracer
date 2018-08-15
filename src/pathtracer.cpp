@@ -55,48 +55,6 @@ const Vec3f phong_brdf_cos(const Vec3f& kd, const Vec3f ks, const float exp, con
 }
 
 
-Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& rg) {
-
-	int tid;	// Triangle index relative to scene.ntris
-	Vec3f tuv;	// Ray param and uv coords of triangle
-
-	const Mesh* mesh = scene.intersect(ray, tid, tuv);
-	if(mesh != nullptr) {
-		const auto mat = scene.mats[mesh->mat_idx];
-		if (bounces == 0 || dot(mat.ke, mat.ke) != 0)
-			return mat.ke;
-
-		const auto ntri = scene.ntris[tid];
-		const auto n0 = scene.norms[ntri[0]];
-		const auto n1 = scene.norms[ntri[1]];
-		const auto n2 = scene.norms[ntri[2]];	
-		const auto n = (1-tuv[1]-tuv[2])*n0 + tuv[1]*n1 + tuv[2]*n2;
-		const auto p = ray.o + tuv[0]*ray.d;
-
-		const auto le = mat.ke;
-
-		// Direct illumination
-		Vec3f lgt_p, lgt_n;
-		sample_lights(scene, rg, lgt_p, lgt_n);
-		const auto vec_dir = lgt_p - p;
-		const auto i_dir = normalize(vec_dir);
-		const Mesh* lgt_mesh = scene.intersect({p+0.0001*n, i_dir}, tid, tuv);
-		const Vec3f li_dir = lgt_mesh != nullptr ? scene.mats[lgt_mesh->mat_idx].ke : Vec3f();
-		const auto inv_dir_pdf = scene.light_pdf_area_coeff * std::abs(dot(lgt_n, -1*i_dir)) / dot(vec_dir, vec_dir);
-		const auto lr_dir = inv_dir_pdf*li_dir*phong_brdf_cos(mat.kd, mat.ks, mat.exp, i_dir, ray.d, n);
-		
-		// Indirect illumination
-		const auto i_ind = sample_hemisphere(n, rg);
-		const auto li_ind = estimate_li({p+0.0001*n, i_ind}, scene, bounces-1, rg);
-		const auto inv_ind_pdf = PI / dot(n, i_ind);
-		const auto lr_ind = inv_ind_pdf*li_ind*phong_brdf_cos(mat.kd, mat.ks, mat.exp, i_ind, ray.d, n);
-
-		return le + lr_ind + lr_dir;
-	} else {
-		return {};
-	}
-}
-
 Vec3f estimate_li_prod_only_indirect(const Ray ray, const Scene& scene, int bounces, const RndGen& rg) {
 	int tid;	// Triangle index relative to scene.ntris
 	Vec3f tuv;	// Ray param and uv coords of triangle
@@ -170,7 +128,7 @@ Vec3f estimate_li_prod(const Ray ray, const Scene& scene, int bounces, const Rnd
 		const auto i_dir = normalize(vec_dir);
 		const Mesh* lgt_mesh = scene.intersect({p+0.0001*n, i_dir}, tid, tuv);
 		const Vec3f li_dir = lgt_mesh != nullptr ? scene.mats[lgt_mesh->mat_idx].ke : Vec3f();
-		const auto inv_dir_pdf = scene.light_pdf_area_coeff * std::abs(dot(lgt_n, -1*i_dir)) / dot(vec_dir, vec_dir);
+		const auto inv_dir_pdf = scene.light_pdf_area_coeff * std::abs(dot(n, i_dir)*dot(lgt_n, n)) / dot(vec_dir, vec_dir);
 		const auto lr_dir = inv_dir_pdf*li_dir*phong_brdf_cos(old_mat.kd, old_mat.ks, old_mat.exp, i_dir, ray.d, n);
 		li = li + w * lr_dir;
 
