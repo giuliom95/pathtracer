@@ -51,7 +51,7 @@ const Vec3f phong_brdf_cos(const Vec3f& kd, const Vec3f ks, const float exp, con
 	const auto loc_o = transformVector(mat, o);
 	const Vec3f loc_neg_o{-loc_o[0], -loc_o[1], loc_o[2]};
 	const auto dot_res = dot(loc_i, loc_o);
-	return INV_PI * (std::pow(std::max(0.0f, dot_res), exp)*ks + kd);
+	return INV_PI * dot(n, i) * (std::pow(std::max(0.0f, dot_res), exp)*ks + kd);
 }
 
 
@@ -128,7 +128,7 @@ Vec3f estimate_li_prod(const Ray ray, const Scene& scene, int bounces, const Rnd
 		const auto i_dir = normalize(vec_dir);
 		const Mesh* lgt_mesh = scene.intersect({p+0.0001*n, i_dir}, tid, tuv);
 		const Vec3f li_dir = lgt_mesh != nullptr ? scene.mats[lgt_mesh->mat_idx].ke : Vec3f();
-		const auto inv_dir_pdf = scene.light_pdf_area_coeff * std::abs(dot(n, i_dir)*dot(lgt_n, n)) / dot(vec_dir, vec_dir);
+		const auto inv_dir_pdf = scene.light_pdf_area_coeff * std::abs(dot(lgt_n, n)) / dot(vec_dir, vec_dir);
 		const auto lr_dir = inv_dir_pdf*li_dir*phong_brdf_cos(old_mat.kd, old_mat.ks, old_mat.exp, i_dir, ray.d, n);
 		li = li + w * lr_dir;
 
