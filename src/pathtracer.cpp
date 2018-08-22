@@ -46,11 +46,11 @@ const Vec3f lambert_brdf_cos(const Vec3f& kd, const Vec3f& i, const Vec3f& n) {
 
 
 const Vec3f phong_brdf_cos(const Vec3f& kd, const Vec3f ks, const float exp, const Vec3f& i, const Vec3f& o, const Vec3f& n) {
-	const auto mat = refFromVec(n);
+	const auto mat = transpose(refFromVec(n));
 	const auto loc_i = transformVector(mat, i);
 	const auto loc_o = transformVector(mat, o);
-	const Vec3f loc_neg_o{-loc_o[0], -loc_o[1], loc_o[2]};
-	const auto dot_res = dot(loc_i, loc_o);
+	const Vec3f loc_neg_o{-loc_o[0], loc_o[1], loc_o[2]};
+	const auto dot_res = dot(loc_i, loc_neg_o);
 	return INV_PI * dot(n, i) * (std::pow(std::max(0.0f, dot_res), exp)*ks + kd);
 }
 
