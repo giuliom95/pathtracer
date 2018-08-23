@@ -113,7 +113,7 @@ Vec3f estimate_li_prod(const Ray ray, const Scene& scene, int bounces, const Rnd
 		const auto n0 = scene.norms[ntri[0]];
 		const auto n1 = scene.norms[ntri[1]];
 		const auto n2 = scene.norms[ntri[2]];	
-		const auto n = (1-tuv[1]-tuv[2])*n0 + tuv[1]*n1 + tuv[2]*n2;
+		const auto n = normalize((1-tuv[1]-tuv[2])*n0 + tuv[1]*n1 + tuv[2]*n2);
 		const auto p = old_ray.o + tuv[0]*old_ray.d;
 
 		Vec3f lgt_p, lgt_n;
