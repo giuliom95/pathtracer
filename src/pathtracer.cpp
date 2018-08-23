@@ -1,14 +1,14 @@
 #include "pathtracer.hpp"
 
-const Vec3f sample_hemisphere(Vec3f n, const RndGen& rg) {
+const Vec3f sample_bxdf(const Material& mat, const Vec3f n, const Vec3f v, const RndGen& rg) {
 	const auto r0 = rg.next_float();
 	const auto r1 = rg.next_float();
 	const auto z = std::sqrt(r0);
     const auto r = std::sqrt(1 - z * z);
     const auto phi = 2 * PI * r1;
 
-	const auto mat = refFromVec(n);
-	return transformVector(mat, {z, r * std::cos(phi), r * std::sin(phi)});
+	const auto m = refFromVec(n);
+	return transformVector(m, {z, r * std::cos(phi), r * std::sin(phi)});
 }
 
 
@@ -39,19 +39,13 @@ const void sample_lights(const Scene& scn, const RndGen& rg, Vec3f& p, Vec3f& n)
 	n = a*n0 + b*n1 + c*n2;
 }
 
-
-const Vec3f lambert_brdf_cos(const Vec3f& kd, const Vec3f& i, const Vec3f& n) {
-	return INV_PI*dot(n, i)*kd;
-}
-
-
-const Vec3f phong_brdf_cos(const Vec3f& kd, const Vec3f ks, const float exp, const Vec3f& i, const Vec3f& o, const Vec3f& n) {
-	const auto mat = transpose(refFromVec(n));
-	const auto loc_i = transformVector(mat, i);
-	const auto loc_o = transformVector(mat, o);
+const Vec3f phong_brdf_cos(const Material& mat, const Vec3f& i, const Vec3f& o, const Vec3f& n) {
+	const auto m = transpose(refFromVec(n));
+	const auto loc_i = transformVector(m, i);
+	const auto loc_o = transformVector(m, o);
 	const Vec3f loc_neg_o{-loc_o[0], loc_o[1], loc_o[2]};
 	const auto dot_res = dot(loc_i, loc_neg_o);
-	return INV_PI * dot(n, i) * (std::pow(std::max(0.0f, dot_res), exp)*ks + kd);
+	return INV_PI * dot(n, i) * (std::pow(std::max(0.0f, dot_res), mat.exp)*mat.ks + mat.kd);
 }
 
 
@@ -79,7 +73,7 @@ Vec3f estimate_li_prod_only_indirect(const Ray ray, const Scene& scene, int boun
 		const auto n = (1-tuv[1]-tuv[2])*n0 + tuv[1]*n1 + tuv[2]*n2;
 		const auto p = old_ray.o + tuv[0]*old_ray.d;
 
-		const auto i_ind = sample_hemisphere(n, rg);
+		const auto i_ind = sample_bxdf(old_mat, n, old_ray.d, rg);
 		const Ray new_ray{p+0.0001*n, i_ind};
 
 		const auto new_mesh = scene.intersect(new_ray, tid, tuv);
@@ -87,7 +81,7 @@ Vec3f estimate_li_prod_only_indirect(const Ray ray, const Scene& scene, int boun
 		const auto new_mat = scene.mats[new_mesh->mat_idx];
 
 		const auto inv_ind_pdf = PI / dot(n, i_ind);
-		w = inv_ind_pdf * w * phong_brdf_cos(old_mat.kd, old_mat.ks, old_mat.exp, i_ind, old_ray.d, n);
+		w = inv_ind_pdf * w * phong_brdf_cos(old_mat, i_ind, old_ray.d, n);
 		li = li + w * new_mat.ke;
 
 		old_ray = new_ray;
@@ -129,15 +123,15 @@ Vec3f estimate_li_prod(const Ray ray, const Scene& scene, int bounces, const Rnd
 		const Mesh* lgt_mesh = scene.intersect({p+0.0001*n, i_dir}, tid, tuv);
 		const Vec3f li_dir = lgt_mesh != nullptr ? scene.mats[lgt_mesh->mat_idx].ke : Vec3f();
 		const auto inv_dir_pdf = scene.light_pdf_area_coeff * std::abs(dot(lgt_n, n)) / dot(vec_dir, vec_dir);
-		const auto lr_dir = inv_dir_pdf*li_dir*phong_brdf_cos(old_mat.kd, old_mat.ks, old_mat.exp, i_dir, ray.d, n);
+		const auto lr_dir = inv_dir_pdf*li_dir*phong_brdf_cos(old_mat, i_dir, ray.d, n);
 		li = li + w * lr_dir;
 
-		const auto i_ind = sample_hemisphere(n, rg);
+		const auto i_ind = sample_bxdf(old_mat, n, old_ray.d, rg);
 		const Ray new_ray{p+0.0001*n, i_ind};
 		const auto new_mesh = scene.intersect(new_ray, tid, tuv);
 		if(new_mesh == nullptr) return li;
 		const auto inv_ind_pdf = PI / dot(n, i_ind);
-		w = inv_ind_pdf * w * phong_brdf_cos(old_mat.kd, old_mat.ks, old_mat.exp, i_ind, old_ray.d, n);
+		w = inv_ind_pdf * w * phong_brdf_cos(old_mat, i_ind, old_ray.d, n);
 
 		old_ray = new_ray;
 		old_mat_idx = new_mesh->mat_idx;
@@ -162,6 +156,7 @@ void pathtrace(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec
 						const auto uv = scn.cam.sample_camera(i, j, h, rg);
 						const auto r = scn.cam.generateRay(uv);
 						const auto pix = estimate_li_prod(r, scn, MAX_BOUNCES, rg); 
+						//const auto pix = estimate_li_prod_only_indirect(r, scn, MAX_BOUNCES, rg); 
 						img[buf_idx][0] += pix[0];
 						img[buf_idx][1] += pix[1];
 						img[buf_idx][2] += pix[2];
