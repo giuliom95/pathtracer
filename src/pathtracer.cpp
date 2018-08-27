@@ -70,7 +70,7 @@ Vec3f estimate_li_prod_only_indirect(const Ray ray, const Scene& scene, int boun
 		const auto n0 = scene.norms[ntri[0]];
 		const auto n1 = scene.norms[ntri[1]];
 		const auto n2 = scene.norms[ntri[2]];	
-		const auto n = (1-tuv[1]-tuv[2])*n0 + tuv[1]*n1 + tuv[2]*n2;
+		const auto n = normalize((1-tuv[1]-tuv[2])*n0 + tuv[1]*n1 + tuv[2]*n2);
 		const auto p = old_ray.o + tuv[0]*old_ray.d;
 
 		const auto i_ind = sample_bxdf(old_mat, n, old_ray.d, rg);
@@ -156,7 +156,7 @@ void pathtrace(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec
 						const auto uv = scn.cam.sample_camera(i, j, h, rg);
 						const auto r = scn.cam.generateRay(uv);
 						const auto pix = estimate_li_prod(r, scn, MAX_BOUNCES, rg); 
-						//const auto pix = estimate_li_prod_only_indirect(r, scn, MAX_BOUNCES, rg); 
+						// const auto pix = estimate_li_prod_only_indirect(r, scn, MAX_BOUNCES, rg); 
 						img[buf_idx][0] += pix[0];
 						img[buf_idx][1] += pix[1];
 						img[buf_idx][2] += pix[2];
