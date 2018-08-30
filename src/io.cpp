@@ -137,7 +137,7 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 				const auto p = vtxs[tri[0]];
 				const auto v1 = vtxs[tri[1]] - p;
 				const auto v2 = vtxs[tri[2]] - p;
-				const auto tri_area = 0.5 * dot(v1, v2);
+				const auto tri_area = 0.5 * length(cross(v1, v2));
 				
 				area += tri_area;
 				light_tris_areas.push_back(area);
