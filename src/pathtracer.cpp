@@ -157,10 +157,19 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 	const auto p = ray.o + tuv[0]*ray.d;
 	const auto mat = scene.mats[mesh->mat_idx];
 
+	Vec3f lgt_p, lgt_n;
+	sample_lights(scene, rg, lgt_p, lgt_n);
+	const auto vec_dir = lgt_p - p;
+	const auto i_dir = normalize(vec_dir);
+	const Mesh* lgt_mesh = scene.intersect({p+0.0001*n, i_dir}, tid, tuv);
+	const Vec3f li_dir = lgt_mesh != nullptr ? scene.mats[lgt_mesh->mat_idx].ke : Vec3f();
+	const auto inv_dir_pdf = scene.light_pdf_area_coeff * std::abs(dot(lgt_n, n)) / dot(vec_dir, vec_dir);
+	const auto lr_dir = inv_dir_pdf*li_dir*phong_brdf_cos(mat, i_dir, ray.d, n);
+
 	const auto i_ind = sample_bxdf(mat, n, ray.d, rg);
 	const Ray new_ray{p+0.0001*n, i_ind};
 	const auto inv_ind_pdf = PI / dot(n, i_ind);
-	return mat.ke + inv_ind_pdf * estimate_li(new_ray, scene, bounces-1, rg) * phong_brdf_cos(mat, i_ind, ray.d, n);
+	return mat.ke + lr_dir + inv_ind_pdf * estimate_li(new_ray, scene, bounces-1, rg) * phong_brdf_cos(mat, i_ind, ray.d, n);
 }
 
 void pathtrace(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec4h>& img) {
