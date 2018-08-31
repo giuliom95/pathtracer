@@ -33,8 +33,10 @@ inline const Vec3f operator*	(const float f,  const Vec3f& v) { return {f*v[0], 
 inline const Vec3f operator/	(const Vec3f& v, const float f) { return {v[0]/f, v[1]/f, v[2]/f}; }
 inline const float length		(const Vec3f& v) { return std::sqrt(dot(v, v)); }
 inline const Vec3f normalize	(const Vec3f& v) { return (1 / length(v))*v; }
+inline const void  operator+=	(Vec4h& a, const Vec4h& b) { a[0]+=b[0]; a[1]+=b[1]; a[2]+=b[2]; a[3]+=b[3]; }
 
-inline const void operator+=	(Vec4h& a, const Vec4h& b) { a[0]+=b[0]; a[1]+=b[1]; a[2]+=b[2]; a[3]+=b[3]; }
+// Cartesian to polar coordinates. Normalized vectors are assumed.
+inline const Vec2f cart2polar	(const Vec3f& v) { return {std::atan2(v[2], v[0]), std::asin(v[1])}; }
 
 inline std::ostream& operator<<(std::ostream& os, const Vec3f& v) {
 	return os << "[" << v[0] << ", " << v[1] << ", " << v[2] << "]";
