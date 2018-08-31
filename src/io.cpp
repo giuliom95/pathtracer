@@ -115,9 +115,11 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 			input >> cam_view[0] 	>> cam_view[1]	>> cam_view[2];
 			input >> cam_up[0]		>> cam_up[1]	>> cam_up[2];
 		} else if(head == "env") {
-			std::string path;
-			input >> path;
-			readEXR(path, envmap, envmap_w, envmap_h);
+			std::string env_file;
+			input >> env_file;
+			const auto pos = path.find_last_of('/');
+    		const auto env_path = path.substr(0, pos+1);
+			readEXR(env_path + env_file, envmap, envmap_w, envmap_h);
 		}
 	}
 
@@ -156,6 +158,7 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 	std::cout << "Meshes: " << meshes.size() << std::endl;
 	std::cout << "Materials: " << mats.size() << std::endl;
 	std::cout << "Emitting triangles: " << light_tris.size() << std::endl;
+	std::cout << "Envmap: " << envmap_w << "x" << envmap_h << " pixels" << std::endl;
 	std::cout << "Camera: " << cam_eye << ", " << cam_view << ", " << cam_up << std::endl;
 
 	return {	vtxs, norms, vtris, ntris, 
