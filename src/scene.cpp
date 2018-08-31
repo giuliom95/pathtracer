@@ -30,7 +30,7 @@ const Vec2f Camera::sample_camera(const int i, const int j, const int res, const
 
 const Ray Camera::generateRay(const Vec2f& uv) const {
 	const Vec3f q{w * focus * (uv[0] - 0.5f), -h * focus * (uv[1] - 0.5f), -focus};
-	return {transformPoint(c2w, {0,0,0}), transformVector(c2w, normalize(q))};
+	return {transformPoint(c2w, {0,0,0}), normalize(transformVector(c2w, q))};
 }
 
 
