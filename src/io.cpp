@@ -153,6 +153,18 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 	return {vtxs, norms, vtris, ntris, meshes, mats, light_tris, light_tris_areas, cam};
 }
 
+void io::readEXR(	const std::string fileName,
+					std::vector<Imf::Rgba>& image,
+					int& width, int& height) {
+	Imf::RgbaInputFile file(fileName.c_str());
+	Imath::Box2i dw = file.dataWindow();
+	width  = dw.max.x - dw.min.x + 1;
+	height = dw.max.y - dw.min.y + 1;
+	image.resize(height * width);
+	file.setFrameBuffer(image.data() - dw.min.x - dw.min.y * width, 1, width);
+	file.readPixels(dw.min.y, dw.max.y);
+}
+
 void io::saveEXR(	std::string path, 
 					const int w, const int h, 
 					const std::vector<Vec4h>& image) {

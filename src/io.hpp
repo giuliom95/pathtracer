@@ -24,9 +24,13 @@ namespace io {
 
 	Scene loadOBJ(std::string path, int w, int h);
 
-	void saveEXR(   std::string path, 
+	void saveEXR(	std::string path, 
 					const int w, const int h, 
 					const std::vector<Vec4h>& image);
+
+	void readEXR(	const std::string path,
+					std::vector<Imf::Rgba>& image,
+					int& width, int& height);
 
 	bool parseArgs(	int argc, char** argv, 
 					int& w, int& h, int& s, 
