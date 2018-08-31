@@ -39,6 +39,10 @@ public:
 	const std::vector<int>		lgt_tris;		// Indexes of the light emitting triangles
 	const std::vector<float>	lgt_tris_areas;	// Areas of the emitting triangles
 
+	const std::vector<Vec4h>	envmap;
+	const unsigned				envmap_w;
+	const unsigned				envmap_h;
+
 	const Camera cam;
 
 	const BVHTree bvh;
@@ -47,15 +51,18 @@ public:
 
 	const Mesh* intersect(const Ray&, int&, Vec3f&) const;
 
-	Scene(	const std::vector<Vec3f>& vtxs,
-			const std::vector<Vec3f>& norms, 
-			const std::vector<Vec3i>& vtris, 
-			const std::vector<Vec3i>& ntris,
-			const std::vector<Mesh>& meshes,
-			const std::vector<Material>& materials,
-			const std::vector<int>& light_tris,
-			const std::vector<float>& light_tris_areas,
-			const Camera& camera) :
+	Scene(	const std::vector<Vec3f>&		vtxs,
+			const std::vector<Vec3f>&		norms, 
+			const std::vector<Vec3i>&		vtris, 
+			const std::vector<Vec3i>&		ntris,
+			const std::vector<Mesh>&		meshes,
+			const std::vector<Material>&	materials,
+			const std::vector<int>& 		light_tris,
+			const std::vector<float>& 		light_tris_areas,
+			const std::vector<Vec4h>& 		envmap,
+			const unsigned 					envmap_w,
+			const unsigned 					envmap_h,
+			const Camera& 					camera) :
 			vtxs(vtxs),
 			norms(norms),
 			vtris(vtris),
@@ -64,6 +71,9 @@ public:
 			mats(materials),
 			lgt_tris(light_tris),
 			lgt_tris_areas(light_tris_areas),
+			envmap{envmap},
+			envmap_w{envmap_w},
+			envmap_h{envmap_h},
 			cam(camera),
 			bvh{vtxs, vtris}, 
 			light_pdf_area_coeff(light_tris_areas.size() * light_tris_areas.back()) {}
