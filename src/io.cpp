@@ -154,7 +154,7 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 }
 
 void io::readEXR(	const std::string fileName,
-					std::vector<Imf::Rgba>& image,
+					std::vector<Vec4h>& image,
 					int& width, int& height) {
 	Imf::RgbaInputFile file(fileName.c_str());
 	Imath::Box2i dw = file.dataWindow();
