@@ -29,8 +29,8 @@ namespace io {
 					const std::vector<Vec4h>& image);
 
 	void readEXR(	const std::string path,
-					std::vector<Imf::Rgba>& image,
-					int& width, int& height);
+					std::vector<Vec4h>& image,
+					unsigned& width, unsigned& height);
 
 	bool parseArgs(	int argc, char** argv, 
 					int& w, int& h, int& s, 

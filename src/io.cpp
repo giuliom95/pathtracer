@@ -23,6 +23,10 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 
 	mats.push_back({});
 
+	std::vector<Vec4h> envmap;
+	unsigned envmap_w = 0;
+	unsigned envmap_h = 0;
+
 	auto lastt0 = 0;
 	auto cur_mat_idx = 0;
 	while(!input.eof()) {
@@ -110,6 +114,10 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 			input >> cam_eye[0]		>> cam_eye[1]	>> cam_eye[2];
 			input >> cam_view[0] 	>> cam_view[1]	>> cam_view[2];
 			input >> cam_up[0]		>> cam_up[1]	>> cam_up[2];
+		} else if(head == "env") {
+			std::string path;
+			input >> path;
+			readEXR(path, envmap, envmap_w, envmap_h);
 		}
 	}
 
@@ -150,18 +158,24 @@ Scene io::loadOBJ(std::string path, int w, int h) {
 	std::cout << "Emitting triangles: " << light_tris.size() << std::endl;
 	std::cout << "Camera: " << cam_eye << ", " << cam_view << ", " << cam_up << std::endl;
 
-	return {vtxs, norms, vtris, ntris, meshes, mats, light_tris, light_tris_areas, cam};
+	return {	vtxs, norms, vtris, ntris, 
+				meshes, mats, 
+				light_tris, light_tris_areas, 
+				envmap, envmap_w, envmap_h, 
+				cam};
 }
 
-void io::readEXR(	const std::string fileName,
+void io::readEXR(	const std::string path,
 					std::vector<Vec4h>& image,
-					int& width, int& height) {
-	Imf::RgbaInputFile file(fileName.c_str());
+					unsigned& width, unsigned& height) {
+	Imf::RgbaInputFile file(path.c_str());
 	Imath::Box2i dw = file.dataWindow();
 	width  = dw.max.x - dw.min.x + 1;
 	height = dw.max.y - dw.min.y + 1;
 	image.resize(height * width);
-	file.setFrameBuffer(image.data() - dw.min.x - dw.min.y * width, 1, width);
+
+	// Imf::Rgba is the same as std::array<half, 4>, trust me gcc.
+	file.setFrameBuffer(reinterpret_cast<Imf::Rgba*>(image.data()) - dw.min.x - dw.min.y * width, 1, width);
 	file.readPixels(dw.min.y, dw.max.y);
 }
 
