@@ -8,6 +8,11 @@
 
 #include <string>
 #include <vector>
+#include <fstream>
+#include <string>
+#include <map>
+#include <iostream>
+
 #include <ImfRgbaFile.h>
 #include <ImfRgba.h>
 

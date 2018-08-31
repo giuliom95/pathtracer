@@ -1,10 +1,5 @@
 #include "io.hpp"
 
-#include <fstream>
-#include <string>
-#include <map>
-#include <iostream>
-
 Scene io::loadOBJ(std::string path, int w, int h) {
 
 	std::ifstream input{path};
