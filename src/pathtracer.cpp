@@ -148,7 +148,7 @@ Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& 
 	Vec3f tuv;	// Ray param and uv coords of triangle
 
 	const auto mesh = scene.intersect(ray, tid, tuv);
-	if(mesh == nullptr) return {0,0,0};
+	if(mesh == nullptr) return scene.sample_envmap(ray.d);
 	const auto ntri = scene.ntris[tid];
 	const auto n0 = scene.norms[ntri[0]];
 	const auto n1 = scene.norms[ntri[1]];

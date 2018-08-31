@@ -51,6 +51,8 @@ public:
 
 	const Mesh* intersect(const Ray&, int&, Vec3f&) const;
 
+	const Vec3f sample_envmap(const Vec3f& v) const;
+
 	Scene(	const std::vector<Vec3f>&		vtxs,
 			const std::vector<Vec3f>&		norms, 
 			const std::vector<Vec3i>&		vtris, 
