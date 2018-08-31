@@ -141,6 +141,37 @@ Vec3f estimate_li_prod(const Ray ray, const Scene& scene, int bounces, const Rnd
 	return li;
 }
 
+Vec3f estimate_li(const Ray ray, const Scene& scene, int bounces, const RndGen& rg) {
+	if(bounces == 0) return {0,0,0};
+
+	int tid;	// Triangle index relative to scene.ntris
+	Vec3f tuv;	// Ray param and uv coords of triangle
+
+	const auto mesh = scene.intersect(ray, tid, tuv);
+	if(mesh == nullptr) return {0,0,0};
+	const auto ntri = scene.ntris[tid];
+	const auto n0 = scene.norms[ntri[0]];
+	const auto n1 = scene.norms[ntri[1]];
+	const auto n2 = scene.norms[ntri[2]];	
+	const auto n = normalize((1-tuv[1]-tuv[2])*n0 + tuv[1]*n1 + tuv[2]*n2);
+	const auto p = ray.o + tuv[0]*ray.d;
+	const auto mat = scene.mats[mesh->mat_idx];
+
+	Vec3f lgt_p, lgt_n;
+	sample_lights(scene, rg, lgt_p, lgt_n);
+	const auto vec_dir = lgt_p - p;
+	const auto i_dir = normalize(vec_dir);
+	const Mesh* lgt_mesh = scene.intersect({p+0.0001*n, i_dir}, tid, tuv);
+	const Vec3f li_dir = lgt_mesh != nullptr ? scene.mats[lgt_mesh->mat_idx].ke : Vec3f();
+	const auto inv_dir_pdf = scene.light_pdf_area_coeff * std::abs(dot(lgt_n, n)) / dot(vec_dir, vec_dir);
+	const auto lr_dir = inv_dir_pdf*li_dir*phong_brdf_cos(mat, i_dir, ray.d, n);
+
+	const auto i_ind = sample_bxdf(mat, n, ray.d, rg);
+	const Ray new_ray{p+0.0001*n, i_ind};
+	const auto inv_ind_pdf = PI / dot(n, i_ind);
+	return mat.ke + lr_dir + inv_ind_pdf * estimate_li(new_ray, scene, bounces-1, rg) * phong_brdf_cos(mat, i_ind, ray.d, n);
+}
+
 void pathtrace(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec4h>& img) {
 
 	const auto nthreads = std::thread::hardware_concurrency();
@@ -155,8 +186,9 @@ void pathtrace(const Scene& scn, int w, unsigned h, int samples, std::vector<Vec
 					for (auto s = 0; s < samples; ++s) {
 						const auto uv = scn.cam.sample_camera(i, j, h, rg);
 						const auto r = scn.cam.generateRay(uv);
-						const auto pix = estimate_li_prod(r, scn, MAX_BOUNCES, rg); 
-						// const auto pix = estimate_li_prod_only_indirect(r, scn, MAX_BOUNCES, rg); 
+						// const auto pix = estimate_li_prod(r, scn, MAX_BOUNCES, rg); 
+						const auto pix = estimate_li(r, scn, MAX_BOUNCES, rg); 
+						//const auto pix = estimate_li_prod_only_indirect(r, scn, MAX_BOUNCES, rg); 
 						img[buf_idx][0] += pix[0];
 						img[buf_idx][1] += pix[1];
 						img[buf_idx][2] += pix[2];
