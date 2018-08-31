@@ -30,7 +30,7 @@ const Vec2f Camera::sample_camera(const int i, const int j, const int res, const
 
 const Ray Camera::generateRay(const Vec2f& uv) const {
 	const Vec3f q{w * focus * (uv[0] - 0.5f), -h * focus * (uv[1] - 0.5f), -focus};
-	return {transformPoint(c2w, {0,0,0}), transformVector(c2w, normalize(q))};
+	return {transformPoint(c2w, {0,0,0}), normalize(transformVector(c2w, q))};
 }
 
 
@@ -90,4 +90,16 @@ const Mesh* Scene::intersect(const Ray& r, int& triangle, Vec3f& tuv) const {
 		}
 	}
 	return nullptr;
+}
+
+
+const Vec3f Scene::sample_envmap(const Vec3f& vec) const {
+	if(envmap_w == 0) return {};
+	const auto p = cart2polar(vec);
+	const auto u = std::abs(p[0] * INV_PI * 0.5);
+	const auto v = std::abs(((-p[1] * INV_PI) + 0.5));
+	const unsigned i = envmap_w*u;
+	const unsigned j = envmap_h*v;
+	const auto c = envmap[i+j*envmap_w];
+	return {c[0], c[1], c[2]};
 }
